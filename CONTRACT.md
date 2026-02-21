@@ -1,19 +1,17 @@
 # API Contract
 
-> Agreed interface between frontend and backend. Update this before writing code on either side.
-
 ## Endpoints
 
-<!-- TODO: list endpoints here -->
+<!-- Define API endpoints here -->
 
 ## Request Schema
 
-<!-- TODO: define request shapes here -->
+<!-- Define request payloads here -->
 
 ## Response Schema
 
-<!-- TODO: define response shapes here -->
+<!-- Define response payloads here -->
 
-## Error Handling
+## Error Codes
 
-<!-- TODO: describe error codes/formats here -->
+<!-- Define error codes and messages here -->

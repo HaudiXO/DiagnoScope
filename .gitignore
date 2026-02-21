@@ -1,30 +1,35 @@
-# Python
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
 .venv/
 venv/
-__pycache__/
-*.pyc
-*.pyo
+env/
 .pytest_cache/
 *.egg-info/
 dist/
 build/
 
-# Node / Next.js
+# ── Node / Next.js ────────────────────────────────────────────────────────────
 node_modules/
 .next/
 out/
+.turbo/
 
-# OS / editor
+# ── Environment & secrets ─────────────────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+
+# ── OS / editor junk ─────────────────────────────────────────────────────────
 .DS_Store
+Thumbs.db
 .idea/
 .vscode/
-!.vscode/settings.json
+# Keep VS Code workspace settings if you want:
+# !.vscode/settings.json
 
-# Large data / model files
-*.bin
-*.pt
-*.pkl
-*.h5
-*.csv
-*.parquet
-data/raw/
+# ── Misc ──────────────────────────────────────────────────────────────────────
+*.log
+*.tmp
+*.swp

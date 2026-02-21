@@ -1,21 +1,15 @@
-# Hackathon Monorepo
+# DiagnoScope
 
-> Placeholder — fill in your project name and one-liner here.
+Hackathon monorepo for Team DiagnoScope (frontend + backend + ML).
 
-## Team
+## Quickstart
 
-- Frontend: `frontend/`
-- Backend: `src/`
-- ML / Data: `ml/`, `data/`
-
-## Quick Start
-
-See [`docs/RUNBOOK.md`](docs/RUNBOOK.md) for setup instructions.
+> See `docs/RUNBOOK.md` for full setup instructions.
 
 ## Structure
 
-See [`docs/STRUCTURE.md`](docs/STRUCTURE.md) for a map of what goes where.
+> See `docs/STRUCTURE.md` for folder layout.
 
 ## Contract
 
-See [`CONTRACT.md`](CONTRACT.md) for the agreed API interface between frontend and backend.
+> See `CONTRACT.md` for the API contract between frontend and backend.

@@ -1,50 +1,52 @@
 # Runbook
 
-> How to run each service locally. Mark items TODO until real commands are known.
+> **Status:** Placeholder — fill in actual commands as services are built.
 
 ## Prerequisites
 
-- [ ] TODO: list required tools and versions (Python, Node, etc.)
+- [ ] TODO: list required tools (Python version, Node version, etc.)
 
 ## Backend (`src/`)
 
 ```bash
-# TODO: add setup steps
-# e.g.
-cd src
-python -m venv .venv && source .venv/bin/activate
-pip install -r requirements.txt
-python main.py
+# TODO: create and activate a virtual environment
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
+
+# TODO: install dependencies
+pip install -r src/requirements.txt
+
+# TODO: start the server
+uvicorn src.main:app --reload
 ```
 
 ## Frontend (`frontend/`)
 
 ```bash
-# TODO: add setup steps
-# e.g.
+# TODO: install dependencies
 cd frontend
 npm install
+
+# TODO: start the dev server
 npm run dev
 ```
 
 ## ML (`ml/`)
 
 ```bash
-# TODO: add setup steps
-# e.g.
-cd ml
-pip install -r requirements.txt
-jupyter notebook
+# TODO: install ML dependencies
+pip install -r ml/requirements.txt
+
+# TODO: run training / inference script
+python ml/train.py
 ```
 
-## Running tests
+## Running Tests
 
 ```bash
-# TODO: add test commands
+# TODO: backend tests
+pytest src/
+
+# TODO: frontend tests
+cd frontend && npm test
 ```
-
-## Environment variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| TODO     | TODO        | TODO     |
