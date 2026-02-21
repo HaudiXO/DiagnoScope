@@ -1,0 +1,165 @@
+[
+    {
+        "_comment": "Fixture 0 – DEFAULT (chest / cardiac)",
+        "keywords": [
+            "chest",
+            "heart",
+            "palpitation",
+            "cardiac"
+        ],
+        "request": {
+            "symptoms": "Chest pain radiating to left arm with shortness of breath and sweating",
+            "top_n": 3
+        },
+        "response": {
+            "trace_id": "fixture-0000-chest",
+            "diagnoses": [
+                {
+                    "rank": 1,
+                    "icd10_code": "I21.9",
+                    "description": "Acute myocardial infarction, unspecified",
+                    "confidence": 0.82,
+                    "reasoning": "Chest pain radiating to left arm with diaphoresis is classic for STEMI/NSTEMI."
+                },
+                {
+                    "rank": 2,
+                    "icd10_code": "I20.9",
+                    "description": "Angina pectoris, unspecified",
+                    "confidence": 0.61,
+                    "reasoning": "Stable or unstable angina presents similarly; must be ruled out."
+                },
+                {
+                    "rank": 3,
+                    "icd10_code": "R07.9",
+                    "description": "Chest pain, unspecified",
+                    "confidence": 0.30,
+                    "reasoning": "Non-specific chest pain until further diagnostics confirm aetiology."
+                }
+            ]
+        }
+    },
+    {
+        "_comment": "Fixture 1 – Respiratory",
+        "keywords": [
+            "cough",
+            "breath",
+            "lung",
+            "wheez",
+            "respir",
+            "asthma"
+        ],
+        "request": {
+            "symptoms": "Persistent dry cough, wheezing, shortness of breath worsening at night",
+            "top_n": 3
+        },
+        "response": {
+            "trace_id": "fixture-0001-resp",
+            "diagnoses": [
+                {
+                    "rank": 1,
+                    "icd10_code": "J45.9",
+                    "description": "Asthma, unspecified",
+                    "confidence": 0.78,
+                    "reasoning": "Nocturnal wheezing and dry cough are hallmarks of bronchial asthma."
+                },
+                {
+                    "rank": 2,
+                    "icd10_code": "J06.9",
+                    "description": "Acute upper respiratory infection, unspecified",
+                    "confidence": 0.52,
+                    "reasoning": "Viral URTI can cause persistent cough and mild dyspnoea."
+                },
+                {
+                    "rank": 3,
+                    "icd10_code": "J42",
+                    "description": "Unspecified chronic bronchitis",
+                    "confidence": 0.35,
+                    "reasoning": "Chronic productive or dry cough lasting > 3 months suggests chronic bronchitis."
+                }
+            ]
+        }
+    },
+    {
+        "_comment": "Fixture 2 – Neurological / headache",
+        "keywords": [
+            "headache",
+            "migrain",
+            "dizz",
+            "neuro",
+            "seizure",
+            "vision"
+        ],
+        "request": {
+            "symptoms": "Severe unilateral headache with nausea, photophobia, and visual aura",
+            "top_n": 3
+        },
+        "response": {
+            "trace_id": "fixture-0002-neuro",
+            "diagnoses": [
+                {
+                    "rank": 1,
+                    "icd10_code": "G43.1",
+                    "description": "Migraine with aura",
+                    "confidence": 0.87,
+                    "reasoning": "Unilateral throbbing headache preceded by visual aura meets ICHD-3 criteria."
+                },
+                {
+                    "rank": 2,
+                    "icd10_code": "G44.309",
+                    "description": "Post-traumatic headache, unspecified, not intractable",
+                    "confidence": 0.40,
+                    "reasoning": "Considered if recent head trauma is present."
+                },
+                {
+                    "rank": 3,
+                    "icd10_code": "R51",
+                    "description": "Headache",
+                    "confidence": 0.22,
+                    "reasoning": "Non-specific headache pending further evaluation."
+                }
+            ]
+        }
+    },
+    {
+        "_comment": "Fixture 3 – Gastrointestinal",
+        "keywords": [
+            "abdomen",
+            "abdominal",
+            "nausea",
+            "vomit",
+            "diarrhea",
+            "stomach",
+            "bowel"
+        ],
+        "request": {
+            "symptoms": "Crampy lower abdominal pain, diarrhoea, nausea, and low-grade fever",
+            "top_n": 3
+        },
+        "response": {
+            "trace_id": "fixture-0003-gi",
+            "diagnoses": [
+                {
+                    "rank": 1,
+                    "icd10_code": "K52.9",
+                    "description": "Noninfective gastroenteritis and colitis, unspecified",
+                    "confidence": 0.74,
+                    "reasoning": "Crampy pain with diarrhoea and low fever fits acute gastroenteritis."
+                },
+                {
+                    "rank": 2,
+                    "icd10_code": "A09",
+                    "description": "Other and unspecified gastroenteritis and colitis of infectious origin",
+                    "confidence": 0.65,
+                    "reasoning": "Infectious aetiology must be considered when fever is present."
+                },
+                {
+                    "rank": 3,
+                    "icd10_code": "K58.0",
+                    "description": "Irritable bowel syndrome with diarrhoea",
+                    "confidence": 0.38,
+                    "reasoning": "IBS-D can present with recurrent abdominal pain and loose stools."
+                }
+            ]
+        }
+    }
+]
