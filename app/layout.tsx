@@ -23,7 +23,7 @@ export default function RootLayout({
               </Link>
               <nav className="flex gap-4">
                 <Link href="/" className="text-sm font-medium hover:text-blue-600 transition-colors">
-                  Diagnose
+                  Patients
                 </Link>
                 <Link href="/history" className="text-sm font-medium hover:text-blue-600 transition-colors">
                   History
