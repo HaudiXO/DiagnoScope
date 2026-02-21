@@ -15,12 +15,32 @@ import {
 } from './lib/patients';
 import type { HistoryEntry } from './lib/history';
 
+type SortKey = 'updated' | 'name' | 'warnings';
+
+const BANNER_KEY = 'dx_banner_dismissed_v1';
+
+function getBannerWarnings(run: HistoryEntry | undefined): number {
+  try {
+    const w = (run?.rawResponse as Record<string, unknown> | null)?.warnings;
+    return Array.isArray(w) ? w.length : 0;
+  } catch {
+    return 0;
+  }
+}
+
 export default function PatientsPage() {
   const [patients, setPatients] = useState<Patient[]>([]);
   const [lastRuns, setLastRuns] = useState<Record<string, HistoryEntry | undefined>>({});
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+
+  // Search + sort
+  const [search, setSearch] = useState('');
+  const [sort, setSort] = useState<SortKey>('updated');
+
+  // Getting-started banner
+  const [bannerDismissed, setBannerDismissed] = useState(true); // start hidden; read from LS on mount
 
   function load() {
     const pts = readPatients();
@@ -30,7 +50,21 @@ export default function PatientsPage() {
     setLastRuns(runs);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // Read banner dismiss state from localStorage
+    try {
+      const dismissed = localStorage.getItem(BANNER_KEY) === '1';
+      setBannerDismissed(dismissed);
+    } catch {
+      setBannerDismissed(false);
+    }
+  }, []);
+
+  function dismissBanner() {
+    setBannerDismissed(true);
+    try { localStorage.setItem(BANNER_KEY, '1'); } catch { /* quota */ }
+  }
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -48,8 +82,71 @@ export default function PatientsPage() {
     load();
   }
 
+  // ── Filter ────────────────────────────────────────────────────────────────
+  const q = search.trim().toLowerCase();
+  const filtered = patients.filter((p) => {
+    if (!q) return true;
+    const inName = p.name.toLowerCase().includes(q);
+    const inSymptoms = (lastRuns[p.id]?.symptoms ?? '').toLowerCase().includes(q);
+    return inName || inSymptoms;
+  });
+
+  // ── Sort ──────────────────────────────────────────────────────────────────
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === 'name') {
+      return a.name.localeCompare(b.name);
+    }
+    if (sort === 'warnings') {
+      return getBannerWarnings(lastRuns[b.id]) - getBannerWarnings(lastRuns[a.id]);
+    }
+    // default: last updated (most recent run first; fall back to createdAt)
+    const aTime = lastRuns[a.id]?.createdAt ?? a.createdAt;
+    const bTime = lastRuns[b.id]?.createdAt ?? b.createdAt;
+    return new Date(bTime).getTime() - new Date(aTime).getTime();
+  });
+
+  // ── Getting-started banner logic ──────────────────────────────────────────
+  const hasAnyRun = Object.values(lastRuns).some(Boolean);
+  const showBanner = !bannerDismissed && !hasAnyRun && patients.length > 0;
+
   return (
     <div className="space-y-6">
+      {/* Getting-started banner */}
+      {showBanner && (
+        <div
+          className="relative rounded-[var(--radius-lg)] border p-5"
+          style={{
+            borderColor: 'var(--color-border)',
+            background: 'color-mix(in srgb, var(--color-primary) 5%, var(--color-surface))',
+          }}
+        >
+          <button
+            onClick={dismissBanner}
+            aria-label="Dismiss"
+            className="absolute top-3 right-3 text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors text-lg leading-none"
+          >
+            ×
+          </button>
+          <p className="font-semibold mb-3" style={{ color: 'var(--color-primary)' }}>
+            👋 Getting started
+          </p>
+          <ol className="space-y-1.5 text-sm" style={{ color: 'var(--color-muted)' }}>
+            <li>
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>1. Select a patient</span>
+              {' '}— click &ldquo;Open chat&rdquo; on any card below.
+            </li>
+            <li>
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>2. Enter symptoms</span>
+              {' '}— describe the chief complaint and run an assessment.
+            </li>
+            <li>
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>3. Compare dynamics</span>
+              {' '}— use the compare panel to track changes across visits.
+            </li>
+          </ol>
+        </div>
+      )}
+
       {/* Page header */}
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div>
@@ -105,6 +202,31 @@ export default function PatientsPage() {
         </Card>
       )}
 
+      {/* Search + sort toolbar — only when there are patients */}
+      {patients.length > 0 && (
+        <div className="flex gap-3 flex-wrap items-center">
+          <Input
+            type="search"
+            placeholder="Search by name or symptoms…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1 min-w-[200px]"
+          />
+          <select
+            value={sort}
+            onChange={(e) => setSort(e.target.value as SortKey)}
+            className={[
+              'text-sm px-3 py-2 rounded-[var(--radius-md)] border border-[var(--color-border)]',
+              'bg-[var(--color-surface)] text-[var(--color-fg)] focus-ring transition-colors',
+            ].join(' ')}
+          >
+            <option value="updated">Last updated</option>
+            <option value="name">Name A→Z</option>
+            <option value="warnings">Most warnings</option>
+          </select>
+        </div>
+      )}
+
       {/* Patient grid */}
       {patients.length === 0 ? (
         <div
@@ -114,9 +236,17 @@ export default function PatientsPage() {
           <p className="text-lg font-medium">No patients yet.</p>
           <p className="text-sm mt-1">Add a patient or click &ldquo;Reset demo data&rdquo; to seed examples.</p>
         </div>
+      ) : sorted.length === 0 ? (
+        <div
+          className="flex flex-col items-center justify-center p-10 rounded-[var(--radius-lg)] border-2 border-dashed"
+          style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+        >
+          <p className="text-base font-medium">No results for &ldquo;{search}&rdquo;</p>
+          <p className="text-sm mt-1">Try a different name or symptom keyword.</p>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {patients.map((p) => (
+          {sorted.map((p) => (
             <PatientCard key={p.id} patient={p} lastRun={lastRuns[p.id]} />
           ))}
         </div>
