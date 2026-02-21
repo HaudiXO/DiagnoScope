@@ -4,13 +4,97 @@ import {
     DiagnoseResponse,
     DiagnosisItem,
 } from './contract';
+import { USE_MOCK, FixtureMode } from './demoMode';
+import rawFixtures from './fixtures/diagnose_fixtures.json';
 
 // ── Config ─────────────────────────────────────────────────────────────────
 
 const BASE_URL =
     process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, '') ?? '';
 
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 12_000;
+
+// ── Extended response type (mode is appended post-parse; not in Zod schema) ─
+
+export type DiagnoseResponseWithMode = DiagnoseResponse & {
+    mode?: FixtureMode;
+};
+
+// ── Fixture types ──────────────────────────────────────────────────────────
+
+interface FixtureEntry {
+    _comment?: string;
+    keywords: string[];
+    request: unknown;
+    response: unknown;
+}
+
+// ── Fixture validation (dev only, runs once on first use) ──────────────────
+
+let fixturesValidated = false;
+
+function validateFixtures(): void {
+    if (fixturesValidated || process.env.NODE_ENV !== 'development') return;
+    fixturesValidated = true;
+
+    (rawFixtures as FixtureEntry[]).forEach((entry, i) => {
+        const result = DiagnoseResponse.safeParse(entry.response);
+        if (!result.success) {
+            console.error(
+                `[demoMode] Fixture #${i} ("${entry._comment ?? ''}") failed CONTRACT validation:`,
+                result.error.flatten()
+            );
+        }
+    });
+}
+
+// ── Fixture selector ───────────────────────────────────────────────────────
+
+/**
+ * Picks a fixture deterministically from symptoms text.
+ * Strategy: first fixture whose `keywords` array contains a substring
+ * match against the lower-cased symptoms. Falls back to fixture #0.
+ * Guarantees a non-empty diagnoses array.
+ */
+function getFallbackFixture(symptoms: string): DiagnoseResponseWithMode {
+    validateFixtures();
+
+    const lower = symptoms.toLowerCase();
+    const fixtures = rawFixtures as FixtureEntry[];
+
+    const match =
+        fixtures.find((f) =>
+            f.keywords.some((kw) => lower.includes(kw))
+        ) ?? fixtures[0];
+
+    // Parse and validate – if it somehow fails, bubble up to caller.
+    const parsed = parseDiagnoseResponse(match.response);
+
+    // Safety guarantee: fallback must never return empty diagnoses.
+    if (parsed.diagnoses.length === 0) {
+        if (process.env.NODE_ENV === 'development') {
+            console.error(
+                '[demoMode] Selected fixture produced empty diagnoses array. ' +
+                'Ensure fixtures always contain at least one valid DiagnosisItem.'
+            );
+        }
+        // Hard-coded emergency item so the UI is never broken.
+        return {
+            ...parsed,
+            diagnoses: [
+                {
+                    rank: 1,
+                    icd10_code: 'Z03.89',
+                    description: 'Encounter for observation for other suspected diseases',
+                    confidence: 0,
+                    reasoning: 'No fixture data available.',
+                },
+            ],
+        };
+    }
+
+    return parsed;
+}
 
 // ── Error type ─────────────────────────────────────────────────────────────
 
@@ -41,7 +125,6 @@ export async function normalizeApiError(
     try {
         raw = await res.json();
     } catch {
-        // Non-JSON body (HTML, empty) – generic fallback.
         return new ApiError(
             `Request failed (${res.status} ${res.statusText})`,
             res.status
@@ -59,7 +142,6 @@ export async function normalizeApiError(
         );
     }
 
-    // JSON but not the CONTRACT envelope – generic fallback.
     return new ApiError(
         `Request failed (${res.status} ${res.statusText})`,
         res.status
@@ -69,13 +151,17 @@ export async function normalizeApiError(
 // ── Fetch wrapper ──────────────────────────────────────────────────────────
 
 /**
- * POST /diagnose and return a validated, sorted DiagnoseResponse.
- * Throws ApiError on non-2xx, network failure, or validation error.
+ * POST /diagnose and return a validated, sorted DiagnoseResponseWithMode.
+ *
+ * Behaviour:
+ *  - USE_MOCK=true  → return fixture immediately (mode="demo")
+ *  - else           → call backend with 12 s AbortController timeout
+ *    • timeout / network error / !res.ok / schema error → fixture (mode="fallback")
+ * Never throws once a fixture is available.
  */
 export async function diagnose(
     req: DiagnoseRequest
-): Promise<DiagnoseResponse> {
-    // Validate the outgoing request first.
+): Promise<DiagnoseResponseWithMode> {
     const parsed = DiagnoseRequest.safeParse(req);
     if (!parsed.success) {
         throw new ApiError(
@@ -83,6 +169,13 @@ export async function diagnose(
         );
     }
 
+    // ── Demo mode ────────────────────────────────────────────────────────
+    if (USE_MOCK) {
+        const fixture = getFallbackFixture(parsed.data.symptoms);
+        return { ...fixture, mode: 'demo' };
+    }
+
+    // ── Live fetch with 12 s timeout ─────────────────────────────────────
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
@@ -94,30 +187,36 @@ export async function diagnose(
             body: JSON.stringify(parsed.data),
             signal: controller.signal,
         });
-    } catch (err: unknown) {
+    } catch {
+        // Timeout or network error → graceful fallback.
         clearTimeout(timer);
-        if (err instanceof DOMException && err.name === 'AbortError') {
-            throw new ApiError('Request timed out after 10 seconds');
-        }
-        throw new ApiError(
-            err instanceof Error ? err.message : 'Network error'
-        );
+        const fixture = getFallbackFixture(parsed.data.symptoms);
+        return { ...fixture, mode: 'fallback' };
     } finally {
         clearTimeout(timer);
     }
 
+    // ── Non-2xx → fallback ────────────────────────────────────────────────
     if (!res.ok) {
-        throw await normalizeApiError(res);
+        const fixture = getFallbackFixture(parsed.data.symptoms);
+        return { ...fixture, mode: 'fallback' };
     }
 
+    // ── Parse response; invalid schema → fallback ─────────────────────────
     let raw: unknown;
     try {
         raw = await res.json();
     } catch {
-        throw new ApiError('Response is not valid JSON');
+        const fixture = getFallbackFixture(parsed.data.symptoms);
+        return { ...fixture, mode: 'fallback' };
     }
 
-    return parseDiagnoseResponse(raw);
+    try {
+        return parseDiagnoseResponse(raw);
+    } catch {
+        const fixture = getFallbackFixture(parsed.data.symptoms);
+        return { ...fixture, mode: 'fallback' };
+    }
 }
 
 // ── Response parser ────────────────────────────────────────────────────────
@@ -128,7 +227,6 @@ export async function diagnose(
  * Never throws – invalid items are silently dropped.
  */
 export function parseDiagnoseResponse(raw: unknown): DiagnoseResponse {
-    // passthrough() keeps unknown extra fields at the top level.
     const result = DiagnoseResponse.passthrough().safeParse(raw);
 
     if (!result.success) {
@@ -137,7 +235,6 @@ export function parseDiagnoseResponse(raw: unknown): DiagnoseResponse {
         );
     }
 
-    // Filter items that fail DiagnosisItem validation (e.g. missing rank/icd10_code).
     const validItems: DiagnosisItem[] = result.data.diagnoses.filter(
         (item): item is DiagnosisItem => DiagnosisItem.safeParse(item).success
     );
