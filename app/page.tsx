@@ -1,235 +1,120 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation';
-import Section from './components/Section';
-import DiagnosisCard from './components/DiagnosisCard';
-import VoiceInputButton from './components/VoiceInputButton';
-import { diagnose, ApiError, type DiagnoseResponseWithMode } from './lib/api';
-import { addHistoryEntry } from './lib/history';
-import type { DiagnosisItem } from './lib/contract';
-import type { FixtureMode } from './lib/demoMode';
+import PatientCard from './components/PatientCard';
+import {
+  readPatients,
+  addPatient,
+  resetDemoData,
+  getLastPatientRun,
+  type Patient,
+} from './lib/patients';
+import type { HistoryEntry } from './lib/history';
 
-const IS_DEV = process.env.NODE_ENV === 'development';
+export default function PatientsPage() {
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [lastRuns, setLastRuns] = useState<Record<string, HistoryEntry | undefined>>({});
+  const [showForm, setShowForm] = useState(false);
+  const [name, setName] = useState('');
+  const [age, setAge] = useState('');
 
-export default function DiagnosePage() {
-  const searchParams = useSearchParams();
-  const [symptoms, setSymptoms] = useState(() => {
-    // Will be overridden by useEffect below once mounted
-    return '';
-  });
-  const [loading, setLoading] = useState(false);
-  const [results, setResults] = useState<DiagnosisItem[]>([]);
-  const [traceId, setTraceId] = useState<string | undefined>(undefined);
-  const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
-  const [mode, setMode] = useState<FixtureMode | null>(null);
-  const [savedId, setSavedId] = useState<string | undefined>(undefined);
-  const [error, setError] = useState<{
-    message: string;
-    errorCode?: string;
-    traceId?: string;
-  } | null>(null);
-  const [debugOpen, setDebugOpen] = useState(false);
-
-  // Rerun prefill: ?symptoms=...
-  useEffect(() => {
-    const pre = searchParams.get('symptoms');
-    if (pre) setSymptoms(pre);
-  }, [searchParams]);
-
-  async function handleDiagnose() {
-    if (!symptoms.trim()) return;
-    setLoading(true);
-    setError(null);
-    setResults([]);
-    setTraceId(undefined);
-    setRawResponse(null);
-    setMode(null);
-    setSavedId(undefined);
-
-    const start = Date.now();
-    try {
-      const response = await diagnose({ symptoms });
-      const latencyMs = Date.now() - start;
-      const topResults = response.diagnoses.slice(0, 3);
-
-      setResults(topResults);
-      setTraceId(response.trace_id);
-      setMode(response.mode ?? null);
-      if (IS_DEV) setRawResponse(response);
-
-      // Persist to history
-      const entry = addHistoryEntry({
-        symptoms,
-        rawResponse: response,
-        parsedDiagnoses: topResults,
-        latencyMs,
-        traceId: response.trace_id,
-        mode: response.mode ?? 'live',
-        error: undefined,
-      });
-      setSavedId(entry.id);
-    } catch (err) {
-      const latencyMs = Date.now() - start;
-      let msg = 'An unexpected error occurred.';
-      let errorCode: string | undefined;
-      let errTraceId: string | undefined;
-
-      if (err instanceof ApiError) {
-        msg = err.message;
-        errorCode = err.errorCode;
-        errTraceId = err.traceId;
-      }
-      setError({ message: msg, errorCode, traceId: errTraceId });
-
-      // Persist error run to history too
-      const entry = addHistoryEntry({
-        symptoms,
-        rawResponse: null,
-        parsedDiagnoses: [],
-        latencyMs,
-        traceId: errTraceId,
-        mode: null,
-        error: msg,
-      });
-      setSavedId(entry.id);
-    } finally {
-      setLoading(false);
-    }
+  function load() {
+    const pts = readPatients();
+    setPatients(pts);
+    const runs: Record<string, HistoryEntry | undefined> = {};
+    for (const p of pts) runs[p.id] = getLastPatientRun(p.id);
+    setLastRuns(runs);
   }
 
-  function handleVoiceTranscript(text: string) {
-    setSymptoms((prev) => (prev ? `${prev} ${text}` : text));
+  useEffect(() => { load(); }, []);
+
+  function handleAdd(e: React.FormEvent) {
+    e.preventDefault();
+    if (!name.trim()) return;
+    const parsedAge = age ? parseInt(age, 10) : undefined;
+    addPatient({ name, age: Number.isFinite(parsedAge) ? parsedAge : undefined });
+    setName('');
+    setAge('');
+    setShowForm(false);
+    load();
+  }
+
+  function handleReset() {
+    resetDemoData();
+    load();
   }
 
   return (
     <div className="space-y-6">
-      <header className="mb-8">
-        <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-3xl font-bold tracking-tight">Diagnose</h1>
-          {mode === 'demo' && (
-            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-              Demo Mode
-            </span>
-          )}
-          {mode === 'fallback' && (
-            <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-              Fallback Mode
-            </span>
-          )}
+      {/* Page header */}
+      <header className="flex items-center justify-between flex-wrap gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {patients.length} patient{patients.length !== 1 ? 's' : ''} on file
+          </p>
         </div>
-        <p className="text-gray-500 dark:text-gray-400 mt-2">
-          Enter symptoms to receive differential diagnoses.
-        </p>
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setShowForm((v) => !v)}
+            className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
+          >
+            {showForm ? 'Cancel' : '+ Add patient'}
+          </button>
+          <button
+            onClick={handleReset}
+            className="px-3 py-2 text-sm rounded-md border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
+          >
+            Reset demo data
+          </button>
+        </div>
       </header>
 
-      {/* Input */}
-      <Section title="Input Data">
-        <div className="space-y-4">
-          <div className="flex flex-col gap-2">
-            <label htmlFor="diagnose-input" className="text-sm font-medium">
-              Symptoms
-            </label>
-            <div className="relative">
-              <textarea
-                id="diagnose-input"
-                className="w-full min-h-[150px] p-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                placeholder="Describe the patient's symptoms…"
-                value={symptoms}
-                onChange={(e) => setSymptoms(e.target.value)}
-              />
-              {/* Voice mic floats inside textarea top-right */}
-              <div className="absolute top-2 right-2">
-                <VoiceInputButton onTranscript={handleVoiceTranscript} />
-              </div>
-            </div>
-          </div>
-          <button
-            type="button"
-            aria-label="Start diagnosis"
-            disabled={loading || !symptoms.trim()}
-            onClick={handleDiagnose}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md font-medium transition-colors w-max"
-          >
-            {loading ? 'Diagnosing…' : 'Diagnose'}
-          </button>
-        </div>
-      </Section>
-
-      {/* Error banner */}
-      {error && (
-        <div
-          role="alert"
-          className="p-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-300 space-y-1"
+      {/* Inline add-patient form */}
+      {showForm && (
+        <form
+          onSubmit={handleAdd}
+          className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3 bg-white dark:bg-gray-900"
         >
-          <p className="font-semibold">
-            {error.errorCode ? `Error ${error.errorCode}` : 'Error'}
-          </p>
-          <p className="text-sm">{error.message}</p>
-          {error.traceId && (
-            <p className="text-xs text-red-500 dark:text-red-400 font-mono">
-              trace_id: {error.traceId}
-            </p>
-          )}
-        </div>
+          <div className="flex gap-3 flex-wrap">
+            <input
+              required
+              placeholder="Full name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              className="flex-1 min-w-[160px] px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <input
+              type="number"
+              placeholder="Age (optional)"
+              min={0}
+              max={130}
+              value={age}
+              onChange={(e) => setAge(e.target.value)}
+              className="w-32 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 outline-none"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
+            >
+              Add
+            </button>
+          </div>
+        </form>
       )}
 
-      {/* Results */}
-      <Section title="Results">
-        {results.length === 0 && !loading ? (
-          <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-900/50">
-            <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-              No results to display.
-            </p>
-            <p className="text-sm mt-1">Submit data above to view results here.</p>
-          </div>
-        ) : (
-          <div className="space-y-3">
-            {/* Saved result link */}
-            {savedId && results.length > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-gray-500 dark:text-gray-400">Saved to history.</span>
-                <a
-                  href={`/result/${savedId}`}
-                  className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
-                >
-                  Open full report →
-                </a>
-              </div>
-            )}
-            {mode && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                Results sourced from fixture data.
-              </p>
-            )}
-            {traceId && (
-              <p className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                trace_id: {traceId}
-              </p>
-            )}
-            {results.map((item) => (
-              <DiagnosisCard key={`${item.rank}-${item.icd10_code}`} item={item} />
-            ))}
-          </div>
-        )}
-      </Section>
-
-      {/* Dev-only raw response debug panel */}
-      {IS_DEV && rawResponse && (
-        <Section title="Debug">
-          <button
-            type="button"
-            onClick={() => setDebugOpen((o) => !o)}
-            className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline"
-          >
-            {debugOpen ? 'Hide' : 'Show'} raw response
-          </button>
-          {debugOpen && (
-            <pre className="mt-3 p-3 rounded bg-gray-100 dark:bg-gray-800 text-xs overflow-x-auto text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
-              {JSON.stringify(rawResponse, null, 2)}
-            </pre>
-          )}
-        </Section>
+      {/* Patient grid */}
+      {patients.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500">
+          <p className="text-lg font-medium">No patients yet.</p>
+          <p className="text-sm mt-1">Add a patient or click &ldquo;Reset demo data&rdquo; to seed examples.</p>
+        </div>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {patients.map((p) => (
+            <PatientCard key={p.id} patient={p} lastRun={lastRuns[p.id]} />
+          ))}
+        </div>
       )}
     </div>
   );
