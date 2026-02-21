@@ -21,15 +21,15 @@ alembic upgrade head
 # Run API server (dev)
 just api                    # uvicorn src.presentation.api.app:create_app --factory --port 8080 --reload
 
-# Run tests (starts test DB, runs pytest, tears down)
-just test
+# ~~Run tests (starts test DB, runs pytest, tears down)~~
+# just test
 
-# Start test DB only (for running pytest manually)
-just test-db-up
+# ~~Start test DB only (for running pytest manually)~~
+# just test-db-up
 
-# Run a single test file
-docker compose -f docker-compose-test.yml up -d
-pytest tests/unit/application/user/test_create.py -x
+# ~~Run a single test file~~
+# docker compose -f docker-compose-test.yml up -d
+# pytest tests/unit/application/user/test_create.py -x
 
 # Lint and format
 just lint                   # ruff format src tests && ruff check src tests --fix
@@ -70,14 +70,14 @@ Interactors (use cases) inherit from `Interactor[InputDTO, OutputDTO]` and imple
 - **Interactor pattern**: Each use case is a callable class. Create new ones by subclassing `Interactor[InputDTO, OutputDTO]`.
 - **DI with Dishka**: Providers register dependencies by scope.
 
-## Testing
+## Testing (TEMPORARILY DISABLED)
 
-- Tests use `config-local.yaml` (copy from `config-example.yaml`)
-- Test DB runs on port 5435 via `docker-compose-test.yml`
-- pytest-xdist runs tests in parallel (`-n auto`); workers get isolated databases
-- Factory-boy factories in `tests/utils/model_factories/`
-- 90% coverage minimum enforced
-- `asyncio_mode = "auto"` — no need for `@pytest.mark.asyncio`
+- ~~Tests use `config-local.yaml` (copy from `config-example.yaml`)~~
+- ~~Test DB runs on port 5435 via `docker-compose-test.yml`~~
+- ~~pytest-xdist runs tests in parallel (`-n auto`); workers get isolated databases~~
+- ~~Factory-boy factories in `tests/utils/model_factories/`~~
+- ~~90% coverage minimum enforced~~
+- ~~`asyncio_mode = "auto"` — no need for `@pytest.mark.asyncio`~~
 
 ## Configuration
 
