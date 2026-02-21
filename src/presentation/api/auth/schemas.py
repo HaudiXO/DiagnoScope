@@ -1,8 +1,23 @@
 from dataclasses import dataclass
 
+from src.presentation.api.base.schemas import BaseResponseDTO
+
 
 @dataclass
-class AuthRequest:
-    """Generic authentication request."""
+class LoginRequest:
+    """Login request schema."""
 
-    pass
+    username: str
+    password: str
+
+
+@dataclass
+class LoginResponseData:
+    """Login response data."""
+
+    access_token: str
+    token_type: str
+
+
+class LoginResponseSchema(BaseResponseDTO[LoginResponseData]):
+    """Login response schema."""
