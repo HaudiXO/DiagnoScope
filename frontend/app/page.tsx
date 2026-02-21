@@ -14,6 +14,7 @@ import {
   getLastPatientRun,
   type Patient,
 } from './lib/patients';
+import { safeStorageGet, safeStorageSet } from './lib/safeStorage';
 import type { HistoryEntry } from './lib/history';
 
 type SortKey = 'updated' | 'name' | 'warnings';
@@ -56,18 +57,14 @@ export default function PatientsPage() {
   useEffect(() => {
     load();
     // Read banner dismiss state from localStorage
-    try {
-      const dismissed = localStorage.getItem(BANNER_KEY) === '1';
-      setBannerDismissed(dismissed);
-    } catch {
-      setBannerDismissed(false);
-    }
+    const dismissed = safeStorageGet<string>(BANNER_KEY, '0') === '1';
+    setBannerDismissed(dismissed);
     setMounted(true);
   }, []);
 
   function dismissBanner() {
     setBannerDismissed(true);
-    try { localStorage.setItem(BANNER_KEY, '1'); } catch { /* quota */ }
+    safeStorageSet(BANNER_KEY, '1');
   }
 
   function handleAdd(e: React.FormEvent) {
