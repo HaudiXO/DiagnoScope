@@ -3,8 +3,9 @@
 import { useState } from 'react';
 import Section from './components/Section';
 import DiagnosisCard from './components/DiagnosisCard';
-import { diagnose, ApiError } from './lib/api';
-import type { DiagnosisItem, DiagnoseResponse } from './lib/contract';
+import { diagnose, ApiError, type DiagnoseResponseWithMode } from './lib/api';
+import type { DiagnosisItem } from './lib/contract';
+import type { FixtureMode } from './lib/demoMode';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -13,7 +14,8 @@ export default function DiagnosePage() {
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<DiagnosisItem[]>([]);
   const [traceId, setTraceId] = useState<string | undefined>(undefined);
-  const [rawResponse, setRawResponse] = useState<DiagnoseResponse | null>(null);
+  const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
+  const [mode, setMode] = useState<FixtureMode | null>(null);
   const [error, setError] = useState<{
     message: string;
     errorCode?: string;
@@ -27,11 +29,13 @@ export default function DiagnosePage() {
     setResults([]);
     setTraceId(undefined);
     setRawResponse(null);
+    setMode(null);
 
     try {
       const response = await diagnose({ symptoms });
       setResults(response.diagnoses.slice(0, 3));
       setTraceId(response.trace_id);
+      setMode(response.mode ?? null);
       if (IS_DEV) setRawResponse(response);
     } catch (err) {
       if (err instanceof ApiError) {
@@ -51,7 +55,19 @@ export default function DiagnosePage() {
   return (
     <div className="space-y-6">
       <header className="mb-8">
-        <h1 className="text-3xl font-bold tracking-tight">Diagnose</h1>
+        <div className="flex items-center gap-3 flex-wrap">
+          <h1 className="text-3xl font-bold tracking-tight">Diagnose</h1>
+          {mode === 'demo' && (
+            <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
+              Demo Mode
+            </span>
+          )}
+          {mode === 'fallback' && (
+            <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
+              Fallback Mode
+            </span>
+          )}
+        </div>
         <p className="text-gray-500 dark:text-gray-400 mt-2">
           Enter symptoms to receive differential diagnoses.
         </p>
@@ -113,6 +129,11 @@ export default function DiagnosePage() {
           </div>
         ) : (
           <div className="space-y-3">
+            {mode && (
+              <p className="text-xs text-gray-400 dark:text-gray-500 italic">
+                Results sourced from fixture data.
+              </p>
+            )}
             {traceId && (
               <p className="text-xs text-gray-400 dark:text-gray-500 font-mono">
                 trace_id: {traceId}

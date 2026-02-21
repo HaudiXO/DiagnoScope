@@ -30,11 +30,7 @@ export default function RootLayout({
                 </Link>
               </nav>
             </div>
-            <div>
-              <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                Demo Mode
-              </span>
-            </div>
+            <div />
           </div>
         </header>
         <main className="max-w-5xl mx-auto px-6 py-8">
