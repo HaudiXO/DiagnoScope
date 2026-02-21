@@ -1,0 +1,39 @@
+from dataclasses import dataclass
+from datetime import datetime
+
+from .password import Password
+from .vo import (
+    Bio,
+    FirstName,
+    LanguageCode,
+    LastName,
+    UserId,
+    Username,
+    UserRole,
+)
+
+
+@dataclass
+class User:
+    id: UserId
+    first_name: FirstName
+    last_name: LastName | None
+    username: Username
+    bio: Bio | None
+    created_at: datetime
+    updated_at: datetime
+    last_login_at: datetime
+    role: UserRole
+    password_hash: Password | None = None
+    language_code: LanguageCode | None = None
+
+    @property
+    def is_new(self) -> bool:
+        return self.created_at == self.last_login_at
+
+    def __str__(self) -> str:
+        return (
+            f"User(id={self.id.value}, username={self.username}, "
+            f"first_name={self.first_name}, last_name={self.last_name}, "
+            f"language_code={self.language_code}, is_new={self.is_new})"
+        )

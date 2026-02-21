@@ -1,0 +1,45 @@
+name: "diagnoscope-prod"
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: prod_postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  alembic:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    command: ["uv", "run", "alembic", "upgrade", "head"]
+    volumes:
+      - ./config-prod.yaml:/app/config.yaml:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    ports:
+      - "8000:8000"
+    environment:
+      API_WORKERS: ${API_WORKERS}
+    volumes:
+      - ./config-prod.yaml:/app/config.yaml:ro
+    depends_on:
+      alembic:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
