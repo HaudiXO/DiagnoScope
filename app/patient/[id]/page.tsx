@@ -9,6 +9,7 @@ import { diagnose, ApiError, type DiagnoseResponseWithMode } from '../../lib/api
 import { addHistoryEntry } from '../../lib/history';
 import { addPatientRun, readPatients, type Patient } from '../../lib/patients';
 import { getPatientRuns, type HistoryEntry } from '../../lib/patientRuns';
+import TaskBoard from '../../components/TaskBoard';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -60,6 +61,7 @@ export default function PatientPage() {
     const [loading, setLoading] = useState(false);
     const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
     const [debugOpen, setDebugOpen] = useState(false);
+    const [lastMode, setLastMode] = useState<string | null>(null);
 
     const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -103,6 +105,7 @@ export default function PatientPage() {
             const topResults = (response.diagnoses ?? []).slice(0, 3);
 
             if (IS_DEV) setRawResponse(response);
+            setLastMode(response.mode ?? 'live');
 
             const entry = addHistoryEntry({
                 symptoms: trimmed,
@@ -184,7 +187,7 @@ export default function PatientPage() {
 
     // ── Main layout ───────────────────────────────────────────────────────
     return (
-        <div className="flex gap-6 h-[calc(100vh-8rem)]">
+        <div className="flex gap-6 h-[calc(100vh-8rem)] overflow-hidden">
             {/* ── Left sidebar: recent runs ── */}
             <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 pr-4 gap-3">
                 <Link
@@ -328,6 +331,11 @@ export default function PatientPage() {
                     </div>
                 )}
             </div>
+
+            {/* ── Right panel: TaskBoard ── */}
+            <aside className="hidden xl:flex flex-col w-64 flex-shrink-0 border-l border-gray-200 dark:border-gray-800 pl-4 overflow-y-auto">
+                <TaskBoard patientId={patientId} currentMode={lastMode} />
+            </aside>
         </div>
     );
 }
