@@ -63,5 +63,5 @@ class LoginInteractor(Interactor[LoginInputDTO, LoginOutputDTO]):
 
         return LoginOutputDTO(
             access_token=access_token,
-            token_type="bearer",
+            token_type="bearer",  # noqa: S106
         )
