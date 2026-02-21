@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import PatientCard from './components/PatientCard';
 import Button from './components/ui/Button';
 import Input from './components/ui/Input';
 import Card from './components/ui/Card';
 import { PlusIcon } from './components/ui/Icon';
+import Skeleton from './components/ui/Skeleton';
 import {
   readPatients,
   addPatient,
@@ -39,6 +40,8 @@ export default function PatientsPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('updated');
 
+  const [mounted, setMounted] = useState(false);
+
   // Getting-started banner
   const [bannerDismissed, setBannerDismissed] = useState(true); // start hidden; read from LS on mount
 
@@ -59,6 +62,7 @@ export default function PatientsPage() {
     } catch {
       setBannerDismissed(false);
     }
+    setMounted(true);
   }, []);
 
   function dismissBanner() {
@@ -83,27 +87,31 @@ export default function PatientsPage() {
   }
 
   // ── Filter ────────────────────────────────────────────────────────────────
-  const q = search.trim().toLowerCase();
-  const filtered = patients.filter((p) => {
-    if (!q) return true;
-    const inName = p.name.toLowerCase().includes(q);
-    const inSymptoms = (lastRuns[p.id]?.symptoms ?? '').toLowerCase().includes(q);
-    return inName || inSymptoms;
-  });
+  const filtered = React.useMemo(() => {
+    const q = search.trim().toLowerCase();
+    return patients.filter((p) => {
+      if (!q) return true;
+      const inName = p.name.toLowerCase().includes(q);
+      const inSymptoms = (lastRuns[p.id]?.symptoms ?? '').toLowerCase().includes(q);
+      return inName || inSymptoms;
+    });
+  }, [patients, search, lastRuns]);
 
   // ── Sort ──────────────────────────────────────────────────────────────────
-  const sorted = [...filtered].sort((a, b) => {
-    if (sort === 'name') {
-      return a.name.localeCompare(b.name);
-    }
-    if (sort === 'warnings') {
-      return getBannerWarnings(lastRuns[b.id]) - getBannerWarnings(lastRuns[a.id]);
-    }
-    // default: last updated (most recent run first; fall back to createdAt)
-    const aTime = lastRuns[a.id]?.createdAt ?? a.createdAt;
-    const bTime = lastRuns[b.id]?.createdAt ?? b.createdAt;
-    return new Date(bTime).getTime() - new Date(aTime).getTime();
-  });
+  const sorted = React.useMemo(() => {
+    return [...filtered].sort((a, b) => {
+      if (sort === 'name') {
+        return a.name.localeCompare(b.name);
+      }
+      if (sort === 'warnings') {
+        return getBannerWarnings(lastRuns[b.id]) - getBannerWarnings(lastRuns[a.id]);
+      }
+      // default: last updated (most recent run first; fall back to createdAt)
+      const aTime = lastRuns[a.id]?.createdAt ?? a.createdAt;
+      const bTime = lastRuns[b.id]?.createdAt ?? b.createdAt;
+      return new Date(bTime).getTime() - new Date(aTime).getTime();
+    });
+  }, [filtered, sort, lastRuns]);
 
   // ── Getting-started banner logic ──────────────────────────────────────────
   const hasAnyRun = Object.values(lastRuns).some(Boolean);
@@ -181,6 +189,7 @@ export default function PatientsPage() {
           <form onSubmit={handleAdd} className="flex gap-3 flex-wrap">
             <Input
               required
+              aria-label="Full name"
               placeholder="Full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -188,6 +197,7 @@ export default function PatientsPage() {
             />
             <Input
               type="number"
+              aria-label="Age (optional)"
               placeholder="Age (optional)"
               min={0}
               max={130}
@@ -207,12 +217,14 @@ export default function PatientsPage() {
         <div className="flex gap-3 flex-wrap items-center">
           <Input
             type="search"
+            aria-label="Search patients"
             placeholder="Search by name or symptoms…"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 min-w-[200px]"
           />
           <select
+            aria-label="Sort patients"
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
             className={[
@@ -228,7 +240,13 @@ export default function PatientsPage() {
       )}
 
       {/* Patient grid */}
-      {patients.length === 0 ? (
+      {!mounted ? (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+          <Skeleton className="h-40 w-full" />
+        </div>
+      ) : patients.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed"
           style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}

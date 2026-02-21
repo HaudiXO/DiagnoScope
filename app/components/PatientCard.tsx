@@ -91,12 +91,14 @@ export default function PatientCard({ patient, lastRun }: Props) {
             <div className="flex gap-2 flex-wrap">
                 <Link
                     href={`/patient/${patient.id}`}
+                    aria-label={`Open chat for ${patient.name}`}
                     className={primaryActionCls}
                 >
                     Open chat
                 </Link>
                 <Link
                     href={`/patient/${patient.id}?new=1&template=${encodeURIComponent(ASSESSMENT_TEMPLATE)}`}
+                    aria-label={`Start new assessment for ${patient.name}`}
                     className={secondaryActionCls}
                 >
                     New assessment

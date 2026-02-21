@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import DiagnosisCard from './DiagnosisCard';
 import SafetyBanner from './SafetyBanner';
+import Alert from './ui/Alert';
 import type { DiagnosisItem } from '../lib/contract';
 import type { FixtureMode } from '../lib/demoMode';
 
@@ -163,9 +164,12 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
 
                 {/* Error state */}
                 {msg.error && (
-                    <div className="rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 px-4 py-3 text-sm text-red-800 dark:text-red-300">
-                        {msg.error}
-                    </div>
+                    <Alert variant="error" title="Analysis Issue">
+                        <p>{msg.error}</p>
+                        <p className="mt-2 text-xs opacity-80">
+                            Please check your connection or provide more specific symptoms.
+                        </p>
+                    </Alert>
                 )}
 
                 {/* Empty diagnoses (non-error) */}

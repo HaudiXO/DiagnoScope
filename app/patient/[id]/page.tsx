@@ -10,6 +10,7 @@ import { addHistoryEntry } from '../../lib/history';
 import { addPatientRun, readPatients, type Patient } from '../../lib/patients';
 import { getPatientRuns, type HistoryEntry } from '../../lib/patientRuns';
 import TaskBoard from '../../components/TaskBoard';
+import Skeleton from '../../components/ui/Skeleton';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
 
@@ -250,10 +251,9 @@ export default function PatientPage() {
                                 <div className="flex items-center gap-2">
                                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assistant</span>
                                 </div>
-                                <div className="inline-flex gap-1.5 py-3 px-4 rounded-2xl bg-gray-100 dark:bg-gray-800/80 items-center justify-center">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-[bounce_1s_infinite_-0.3s]" />
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-[bounce_1s_infinite_-0.15s]" />
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" />
+                                <div className="space-y-3 mt-2">
+                                    <Skeleton className="h-24 w-full" />
+                                    <Skeleton className="h-24 w-[80%]" />
                                 </div>
                             </div>
                         </div>
@@ -266,6 +266,7 @@ export default function PatientPage() {
                     <div className="relative">
                         <textarea
                             id="diagnose-input"
+                            aria-label="Describe the patient's symptoms"
                             className="w-full min-h-[80px] p-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm resize-none"
                             placeholder="Describe the patient's symptoms…"
                             value={symptoms}
