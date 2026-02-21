@@ -62,6 +62,7 @@ export default function PatientPage() {
     const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
     const [debugOpen, setDebugOpen] = useState(false);
     const [lastMode, setLastMode] = useState<string | null>(null);
+    const [activeTab, setActiveTab] = useState<'chat' | 'tasks'>('chat');
 
     const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -187,55 +188,27 @@ export default function PatientPage() {
 
     // ── Main layout ───────────────────────────────────────────────────────
     return (
-        <div className="flex gap-6 h-[calc(100vh-8rem)] overflow-hidden">
-            {/* ── Left sidebar: recent runs ── */}
-            <aside className="hidden lg:flex flex-col w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 pr-4 gap-3">
-                <Link
-                    href="/"
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+        <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)] overflow-hidden">
+            {/* Mobile tabs */}
+            <div className="lg:hidden flex gap-2 border-b border-gray-200 dark:border-gray-800 pb-2 mb-2 flex-shrink-0">
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('chat')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'chat' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}
                 >
-                    ← Back to Patients
-                </Link>
-                <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                    Recent Runs
-                </span>
-                {runs.length === 0 ? (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 italic">No runs yet.</p>
-                ) : (
-                    <ul className="space-y-1 overflow-y-auto flex-1">
-                        {runs.map((run) => (
-                            <li key={run.id}>
-                                <button
-                                    type="button"
-                                    onClick={() => scrollToRun(run.id)}
-                                    className="w-full text-left rounded-md px-2 py-1.5 text-xs hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                                >
-                                    <span className="block truncate font-medium text-gray-700 dark:text-gray-200">
-                                        {run.symptoms?.slice(0, 40) || '(no symptoms)'}
-                                        {(run.symptoms?.length ?? 0) > 40 ? '…' : ''}
-                                    </span>
-                                    <span className="block text-gray-400 dark:text-gray-500 mt-0.5">
-                                        {formatDate(run.createdAt)}
-                                    </span>
-                                    {run.error && (
-                                        <span className="inline-block mt-0.5 text-xs text-red-500">
-                                            error
-                                        </span>
-                                    )}
-                                    {run.mode && run.mode !== 'live' && !run.error && (
-                                        <span className="inline-block mt-0.5 text-xs text-amber-500 capitalize">
-                                            {run.mode}
-                                        </span>
-                                    )}
-                                </button>
-                            </li>
-                        ))}
-                    </ul>
-                )}
-            </aside>
+                    Chat
+                </button>
+                <button
+                    type="button"
+                    onClick={() => setActiveTab('tasks')}
+                    className={`px-4 py-2 text-sm font-medium rounded-md ${activeTab === 'tasks' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-300' : 'text-gray-600 dark:text-gray-400'}`}
+                >
+                    Task Board
+                </button>
+            </div>
 
             {/* ── Main panel ── */}
-            <div className="flex flex-col flex-1 min-w-0 gap-4">
+            <div className={`flex flex-col flex-1 min-w-0 gap-4 overflow-hidden ${activeTab === 'chat' ? 'flex' : 'hidden lg:flex'}`}>
                 {/* Patient header */}
                 <header className="flex-shrink-0">
                     {/* Back link on mobile (sidebar hidden) */}
@@ -268,12 +241,20 @@ export default function PatientPage() {
                         </div>
                     )}
                     {messages.map((msg, i) => (
-                        <ChatMessage key={i} msg={msg} />
+                        <ChatMessage key={i} msg={msg} onReuse={setSymptoms} />
                     ))}
                     {loading && (
-                        <div className="flex justify-start">
-                            <div className="px-4 py-2 rounded-2xl bg-gray-100 dark:bg-gray-800 text-sm text-gray-500 animate-pulse">
-                                Diagnosing…
+                        <div className="flex justify-start gap-3">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 text-white font-bold shadow-sm text-xs">AI</div>
+                            <div className="max-w-[90%] w-full space-y-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assistant</span>
+                                </div>
+                                <div className="inline-flex gap-1.5 py-3 px-4 rounded-2xl bg-gray-100 dark:bg-gray-800/80 items-center justify-center">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-[bounce_1s_infinite_-0.3s]" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-[bounce_1s_infinite_-0.15s]" />
+                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 dark:bg-gray-500 animate-bounce" />
+                                </div>
                             </div>
                         </div>
                     )}
@@ -307,9 +288,23 @@ export default function PatientPage() {
                         >
                             {loading ? 'Diagnosing…' : 'Diagnose'}
                         </button>
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                        <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
                             Ctrl+Enter to send
                         </span>
+                        {messages.findLast((m) => m.role === 'doctor') && (
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    const lastDoc = messages.findLast((m) => m.role === 'doctor');
+                                    if (lastDoc && 'symptoms' in lastDoc) {
+                                        setSymptoms(lastDoc.symptoms);
+                                    }
+                                }}
+                                className="ml-auto text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium transition-colors"
+                            >
+                                Rerun last
+                            </button>
+                        )}
                     </div>
                 </div>
 
@@ -333,7 +328,7 @@ export default function PatientPage() {
             </div>
 
             {/* ── Right panel: TaskBoard ── */}
-            <aside className="hidden xl:flex flex-col w-64 flex-shrink-0 border-l border-gray-200 dark:border-gray-800 pl-4 overflow-y-auto">
+            <aside className={`flex-col lg:w-80 flex-shrink-0 lg:border-l border-gray-200 dark:border-gray-800 lg:pl-4 overflow-y-auto ${activeTab === 'tasks' ? 'flex' : 'hidden lg:flex'}`}>
                 <TaskBoard patientId={patientId} currentMode={lastMode} />
             </aside>
         </div>

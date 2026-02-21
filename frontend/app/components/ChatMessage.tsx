@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import DiagnosisCard from './DiagnosisCard';
+import SafetyBanner from './SafetyBanner';
 import type { DiagnosisItem } from '../lib/contract';
 import type { FixtureMode } from '../lib/demoMode';
 
@@ -100,18 +101,31 @@ function CopyIcdButton({ diagnoses }: { diagnoses: DiagnosisItem[] }) {
 
 // ── Doctor bubble ──────────────────────────────────────────────────────────
 
-function DoctorBubble({ msg }: { msg: DoctorMessage }) {
+// ── Doctor bubble ──────────────────────────────────────────────────────────
+
+function DoctorBubble({ msg, onReuse }: { msg: DoctorMessage; onReuse?: (text: string) => void }) {
     return (
         <div className="flex justify-end">
-            <div className="max-w-[80%] space-y-1">
+            <div className="max-w-[80%] space-y-1 flex flex-col items-end">
                 <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
                     <p className="whitespace-pre-wrap break-words">
                         {msg.symptoms || <em className="opacity-60">(empty)</em>}
                     </p>
                 </div>
-                <p className="text-right text-xs text-gray-400 dark:text-gray-500">
-                    {formatTime(msg.timestamp)}
-                </p>
+                <div className="flex items-center gap-3">
+                    {onReuse && msg.symptoms && (
+                        <button
+                            type="button"
+                            onClick={() => onReuse(msg.symptoms)}
+                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline transition-colors"
+                        >
+                            Use this as new input
+                        </button>
+                    )}
+                    <p className="text-right text-xs text-gray-400 dark:text-gray-500">
+                        {formatTime(msg.timestamp)}
+                    </p>
+                </div>
             </div>
         </div>
     );
@@ -125,8 +139,9 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
     return (
         <div
             id={msg.entryId}
-            className="flex justify-start"
+            className="flex justify-start gap-3"
         >
+            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 text-white font-bold shadow-sm text-xs">AI</div>
             <div className="max-w-[90%] w-full space-y-2">
                 {/* Header */}
                 <div className="flex items-center gap-2 flex-wrap">
@@ -163,6 +178,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                 {/* Diagnosis cards */}
                 {safeDiagnoses.length > 0 && (
                     <div className="space-y-2">
+                        <SafetyBanner diagnoses={safeDiagnoses} traceId={msg.traceId} />
                         {safeDiagnoses.map((item, i) => {
                             // Ensure required fields have safe defaults for rendering.
                             const safe: DiagnosisItem = {
@@ -196,7 +212,9 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
 
 // ── Main export ────────────────────────────────────────────────────────────
 
-export default function ChatMessage({ msg }: { msg: ChatMsg }) {
-    if (msg.role === 'doctor') return <DoctorBubble msg={msg} />;
+// ── Main export ────────────────────────────────────────────────────────────
+
+export default function ChatMessage({ msg, onReuse }: { msg: ChatMsg; onReuse?: (text: string) => void }) {
+    if (msg.role === 'doctor') return <DoctorBubble msg={msg} onReuse={onReuse} />;
     return <AssistantBubble msg={msg} />;
 }
