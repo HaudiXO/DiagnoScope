@@ -1,0 +1,40 @@
+from pathlib import Path
+
+from pydantic import BaseModel, field_validator
+import yaml
+
+
+class PostgresConfig(BaseModel):
+    host: str
+    port: int
+    user: str
+    password: str
+    db: str
+    echo: bool = False
+
+    @property
+    def url(self) -> str:
+        return f"postgresql+asyncpg://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+
+    @field_validator("port")
+    @classmethod
+    def port_validator(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("Port must be between 1 and 65535")
+        return v
+
+
+class AuthConfig(BaseModel):
+    secret_key: str
+    algorithm: str
+    access_token_expire_minutes: int
+
+
+class Config(BaseModel):
+    postgres: PostgresConfig
+    auth: AuthConfig
+
+
+def load_config(file_name: str = "config.yaml") -> Config:
+    with Path(file_name).open("r") as f:
+        return Config.model_validate(yaml.safe_load(f))

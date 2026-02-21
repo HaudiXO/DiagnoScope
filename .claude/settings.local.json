@@ -1,0 +1,28 @@
+{
+  "attribution": {
+    "commit": "\n\nCo-Authored-By: Claude <noreply@anthropic.com>",
+    "pr": "\n\nCo-Authored-By: Claude <noreply@anthropic.com>"
+  },
+  "permissions": {
+    "allow": [
+      "Bash(ruff check:*)",
+      "Bash(ruff format:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(pytest:*)",
+      "Bash(gh issue create:*)",
+      "Bash(gh issue:*)",
+      "Bash(time python:*)",
+      "Bash(python test_jwt_validation.py:*)",
+      "Bash(gh pr view:*)",
+      "Bash(find:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh api:*)",
+      "Bash(ls:*)",
+      "Bash(ruff:*)",
+      "Bash(just test:*)"
+    ],
+    "deny": []
+  }
+}
