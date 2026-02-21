@@ -10,11 +10,11 @@ env/
 dist/
 build/
 
-# ── Node / Next.js ────────────────────────────────────────────────────────────
-node_modules/
-.next/
-out/
-.turbo/
+# ── Node / Next.js (frontend/) ────────────────────────────────────────────────
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/.turbo/
 
 # ── Environment & secrets ─────────────────────────────────────────────────────
 .env
