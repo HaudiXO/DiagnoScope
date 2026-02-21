@@ -4,9 +4,10 @@
  * ComparePanel
  * ------------
  * Compares two HistoryEntry items side-by-side.
- * Shows: common ICD-10 codes, changed ranks, new/dropped codes.
+ * Computation delegated to the pure compareRuns() utility.
  */
 
+import { compareRuns } from '../lib/compare';
 import type { HistoryEntry } from '../lib/history';
 
 interface Props {
@@ -16,31 +17,16 @@ interface Props {
 }
 
 export default function ComparePanel({ a, b, onClose }: Props) {
-    const codesA = new Map(a.parsedDiagnoses.map((d) => [d.icd10_code, d.rank]));
-    const codesB = new Map(b.parsedDiagnoses.map((d) => [d.icd10_code, d.rank]));
+    const { common, onlyA, onlyB, newWarnings } = compareRuns(
+        a.parsedDiagnoses,
+        b.parsedDiagnoses,
+    );
 
-    const allCodes = new Set([...codesA.keys(), ...codesB.keys()]);
-
-    const common: { code: string; rankA: number; rankB: number }[] = [];
-    const onlyA: string[] = [];
-    const onlyB: string[] = [];
-
-    allCodes.forEach((code) => {
-        const rA = codesA.get(code);
-        const rB = codesB.get(code);
-        if (rA !== undefined && rB !== undefined) {
-            common.push({ code, rankA: rA, rankB: rB });
-        } else if (rA !== undefined) {
-            onlyA.push(code);
-        } else {
-            onlyB.push(code);
-        }
-    });
-
-    common.sort((x, y) => x.rankA - y.rankA);
+    const isEmpty = common.length === 0 && onlyA.length === 0 && onlyB.length === 0;
 
     return (
         <div className="mt-6 p-4 border border-blue-300 dark:border-blue-700 rounded-lg bg-blue-50 dark:bg-blue-900/20 space-y-4">
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-blue-900 dark:text-blue-200">Compare Results</h2>
                 <button
@@ -52,12 +38,52 @@ export default function ComparePanel({ a, b, onClose }: Props) {
                 </button>
             </div>
 
+            {/* Run labels */}
             <div className="text-xs text-blue-700 dark:text-blue-300 space-y-0.5">
                 <p><span className="font-semibold">A:</span> {new Date(a.createdAt).toLocaleString()} — {a.symptoms.slice(0, 60)}…</p>
                 <p><span className="font-semibold">B:</span> {new Date(b.createdAt).toLocaleString()} — {b.symptoms.slice(0, 60)}…</p>
             </div>
 
-            {/* Common codes */}
+            {/* ── Delta summary ── */}
+            {!isEmpty && (
+                <div className="flex flex-wrap gap-2 text-xs">
+                    <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-200 font-medium">
+                        {common.length} common
+                    </span>
+                    {onlyB.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 font-medium">
+                            +{onlyB.length} added
+                        </span>
+                    )}
+                    {onlyA.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 font-medium">
+                            −{onlyA.length} removed
+                        </span>
+                    )}
+                    {newWarnings.length > 0 && (
+                        <span className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 font-medium">
+                            ⚠ {newWarnings.length} new warning{newWarnings.length > 1 ? 's' : ''}
+                        </span>
+                    )}
+                </div>
+            )}
+
+            {/* ── New warnings alert ── */}
+            {newWarnings.length > 0 && (
+                <div className="rounded-md border border-amber-300 dark:border-amber-600 bg-amber-50 dark:bg-amber-900/30 p-3 space-y-1">
+                    <p className="text-xs font-semibold text-amber-800 dark:text-amber-300">
+                        ⚠ New warnings appeared in run B
+                    </p>
+                    {newWarnings.map(({ code, warnings }) => (
+                        <div key={code} className="text-xs text-amber-700 dark:text-amber-400">
+                            <span className="font-mono font-semibold">{code}:</span>{' '}
+                            {warnings.join(' · ')}
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* ── Common codes table ── */}
             {common.length > 0 && (
                 <div>
                     <p className="text-xs font-semibold mb-1 text-blue-800 dark:text-blue-300">
@@ -73,34 +99,31 @@ export default function ComparePanel({ a, b, onClose }: Props) {
                             </tr>
                         </thead>
                         <tbody>
-                            {common.map(({ code, rankA, rankB }) => {
-                                const delta = rankB - rankA;
-                                return (
-                                    <tr key={code} className="border-t border-blue-200 dark:border-blue-800">
-                                        <td className="pr-4 py-1 font-mono">{code}</td>
-                                        <td className="pr-4 py-1">{rankA}</td>
-                                        <td className="py-1">{rankB}</td>
-                                        <td className={`py-1 font-semibold ${delta < 0
-                                                ? 'text-green-600 dark:text-green-400'
-                                                : delta > 0
-                                                    ? 'text-red-500 dark:text-red-400'
-                                                    : 'text-gray-500'
-                                            }`}>
-                                            {delta === 0 ? '=' : delta > 0 ? `+${delta}` : delta}
-                                        </td>
-                                    </tr>
-                                );
-                            })}
+                            {common.map(({ code, rankA, rankB, delta }) => (
+                                <tr key={code} className="border-t border-blue-200 dark:border-blue-800">
+                                    <td className="pr-4 py-1 font-mono">{code}</td>
+                                    <td className="pr-4 py-1">{rankA}</td>
+                                    <td className="py-1">{rankB}</td>
+                                    <td className={`py-1 font-semibold ${delta < 0
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : delta > 0
+                                                ? 'text-red-500 dark:text-red-400'
+                                                : 'text-gray-500'
+                                        }`}>
+                                        {delta === 0 ? '=' : delta > 0 ? `+${delta}` : delta}
+                                    </td>
+                                </tr>
+                            ))}
                         </tbody>
                     </table>
                 </div>
             )}
 
-            {/* Only in A */}
+            {/* ── Only in A ── */}
             {onlyA.length > 0 && (
                 <div>
-                    <p className="text-xs font-semibold mb-1 text-blue-800 dark:text-blue-300">
-                        Only in A
+                    <p className="text-xs font-semibold mb-1 text-red-700 dark:text-red-400">
+                        Removed (only in A)
                     </p>
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
                         {onlyA.join(', ')}
@@ -108,11 +131,11 @@ export default function ComparePanel({ a, b, onClose }: Props) {
                 </div>
             )}
 
-            {/* Only in B */}
+            {/* ── Only in B ── */}
             {onlyB.length > 0 && (
                 <div>
-                    <p className="text-xs font-semibold mb-1 text-blue-800 dark:text-blue-300">
-                        Only in B
+                    <p className="text-xs font-semibold mb-1 text-green-700 dark:text-green-400">
+                        Added (only in B)
                     </p>
                     <p className="text-xs font-mono text-gray-600 dark:text-gray-400">
                         {onlyB.join(', ')}
@@ -120,7 +143,7 @@ export default function ComparePanel({ a, b, onClose }: Props) {
                 </div>
             )}
 
-            {common.length === 0 && onlyA.length === 0 && onlyB.length === 0 && (
+            {isEmpty && (
                 <p className="text-xs text-gray-500">No diagnoses to compare.</p>
             )}
         </div>
