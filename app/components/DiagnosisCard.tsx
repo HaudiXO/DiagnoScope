@@ -8,16 +8,16 @@ interface Props {
 
 export default function DiagnosisCard({ item }: Props) {
     const {
-        rank,
-        icd10_code,
-        description,
+        rank = 0,
+        icd10_code = 'Unknown',
+        description = '',
         confidence,
-        reasoning,
-        explanation,
-        warnings,
-        labels,
-        protocol_refs,
-    } = item;
+        reasoning = '',
+        explanation = '',
+        warnings = [],
+        labels = [],
+        protocol_refs = [],
+    } = item || {};
 
     const [detailed, setDetailed] = useState(false);
 
@@ -69,14 +69,14 @@ export default function DiagnosisCard({ item }: Props) {
                 </div>
 
                 {/* Labels — always shown */}
-                {labels && labels.length > 0 && (
+                {Array.isArray(labels) && labels.length > 0 && (
                     <div className="flex gap-1 flex-wrap mt-1">
                         {labels.map((l) => (
                             <span
                                 key={l}
                                 className="text-xs px-1.5 py-0.5 rounded bg-gray-200 dark:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium"
                             >
-                                {l}
+                                {String(l)}
                             </span>
                         ))}
                     </div>
@@ -100,7 +100,7 @@ export default function DiagnosisCard({ item }: Props) {
                         )}
 
                         {/* Warnings */}
-                        {warnings && warnings.length > 0 && (
+                        {Array.isArray(warnings) && warnings.length > 0 && (
                             <div className="rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 p-3">
                                 <ul className="space-y-1.5">
                                     {warnings.map((w, i) => (
@@ -109,7 +109,7 @@ export default function DiagnosisCard({ item }: Props) {
                                             className="text-sm font-medium text-amber-800 dark:text-amber-300 flex items-start gap-2"
                                         >
                                             <span aria-hidden className="mt-0.5">⚠️</span>
-                                            <span>{w}</span>
+                                            <span>{String(w)}</span>
                                         </li>
                                     ))}
                                 </ul>
