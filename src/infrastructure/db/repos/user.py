@@ -23,15 +23,19 @@ class UserRepositoryImpl(UserRepository, BaseSQLAlchemyRepo):
         return UserMapper.to_domain(user_model) if user_model else None
 
     async def create_user(self, user: User) -> User:
-        stmt = insert(UserModel).values(
-            id=user.id.value,
-            username=user.username.value,
-            first_name=user.first_name.value,
-            last_name=user.last_name.value if user.last_name else None,
-            created_at=user.created_at,
-            updated_at=user.updated_at,
-            last_login_at=user.last_login_at,
-        ).returning(UserModel)
+        stmt = (
+            insert(UserModel)
+            .values(
+                id=user.id.value,
+                username=user.username.value,
+                first_name=user.first_name.value,
+                last_name=user.last_name.value if user.last_name else None,
+                created_at=user.created_at,
+                updated_at=user.updated_at,
+                last_login_at=user.last_login_at,
+            )
+            .returning(UserModel)
+        )
 
         result = await self._session.execute(stmt)
         orm_model = result.scalar_one()
