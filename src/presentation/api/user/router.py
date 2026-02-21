@@ -34,4 +34,5 @@ user_router = Router(
     path="/users",
     route_handlers=[get_user_profile],
     tags=["users"],
+    security=[{"bearerAuth": []}],
 )

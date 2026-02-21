@@ -4,6 +4,8 @@ from litestar import Litestar
 from litestar.di import Provide
 from litestar.exceptions import ClientException
 from litestar.middleware import DefineMiddleware
+from litestar.openapi.config import OpenAPIConfig
+from litestar.openapi.spec import Components, SecurityScheme
 
 from src.application.auth.exceptions import InvalidInitDataError
 from src.application.common.exceptions import ValidationError
@@ -28,6 +30,22 @@ from .utils import setup_routes
 def prepare_app(auth_service: AuthService) -> Litestar:
     routes = setup_routes()
 
+    # Configure OpenAPI with Bearer token security scheme
+    openapi_config = OpenAPIConfig(
+        title="DiagnoScope API",
+        version="1.0.0",
+        components=Components(
+            security_schemes={
+                "bearerAuth": SecurityScheme(
+                    type="http",
+                    scheme="bearer",
+                    bearer_format="JWT",
+                    description="Enter your Bearer token (JWT) in the format: Bearer <token>",
+                )
+            }
+        ),
+    )
+
     app = Litestar(
         route_handlers=[
             routes,
@@ -49,6 +67,7 @@ def prepare_app(auth_service: AuthService) -> Litestar:
             # todo - rewrite with Dishka
             "user_id": Provide(provide_user_id, sync_to_thread=False)
         },
+        openapi_config=openapi_config,
     )
     return app
 
