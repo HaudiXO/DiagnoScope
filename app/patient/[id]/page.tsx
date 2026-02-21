@@ -1,66 +1,113 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import Section from '../../components/Section';
-import DiagnosisCard from '../../components/DiagnosisCard';
 import VoiceInputButton from '../../components/VoiceInputButton';
-import { diagnose, ApiError, type DiagnoseResponseWithMode } from '../../lib/api';
-import { addHistoryEntry } from '../../lib/history';
+import ChatMessage, { type ChatMsg } from '../../components/ChatMessage';
+import { diagnose, ApiError } from '../../lib/api';
+import { addHistoryEntry, readHistory, type HistoryEntry } from '../../lib/history';
 import { addPatientRun, readPatients, type Patient } from '../../lib/patients';
-import type { DiagnosisItem } from '../../lib/contract';
-import type { FixtureMode } from '../../lib/demoMode';
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+/** Read this patient's history entries, newest-first. */
+function loadRuns(patientId: string): HistoryEntry[] {
+    if (typeof window === 'undefined') return [];
+    try {
+        const raw = localStorage.getItem('dx_patient_runs_v1');
+        if (!raw) return [];
+        const map = JSON.parse(raw) as Record<string, string[]>;
+        const ids: string[] = map[patientId] ?? [];
+        const { entries } = readHistory();
+        return ids
+            .map((id) => entries.find((e) => e.id === id))
+            .filter((e): e is HistoryEntry => Boolean(e));
+    } catch {
+        return [];
+    }
+}
+
+/** Convert a HistoryEntry into a pair of [doctor, assistant] chat messages. */
+function entryToMsgs(e: HistoryEntry): ChatMsg[] {
+    const doctor: ChatMsg = {
+        role: 'doctor',
+        id: `${e.id}-doc`,
+        symptoms: e.symptoms,
+        timestamp: e.createdAt,
+    };
+    const assistant: ChatMsg = {
+        role: 'assistant',
+        id: `${e.id}-ast`,
+        diagnoses: e.parsedDiagnoses ?? [],
+        mode: e.mode,
+        traceId: e.traceId,
+        latencyMs: e.latencyMs,
+        timestamp: e.createdAt,
+        error: e.error,
+    };
+    return [doctor, assistant];
+}
 
 const IS_DEV = process.env.NODE_ENV === 'development';
+
+// ── Page ───────────────────────────────────────────────────────────────────
 
 export default function PatientPage() {
     const params = useParams();
     const patientId = typeof params.id === 'string' ? params.id : '';
 
-    const [patient, setPatient] = useState<Patient | null | undefined>(undefined); // undefined = loading
+    const [patient, setPatient] = useState<Patient | null | undefined>(undefined);
+    const [messages, setMessages] = useState<ChatMsg[]>([]);
+    const [runs, setRuns] = useState<HistoryEntry[]>([]);
     const [symptoms, setSymptoms] = useState('');
     const [loading, setLoading] = useState(false);
-    const [results, setResults] = useState<DiagnosisItem[]>([]);
-    const [traceId, setTraceId] = useState<string | undefined>(undefined);
-    const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
-    const [mode, setMode] = useState<FixtureMode | null>(null);
-    const [savedId, setSavedId] = useState<string | undefined>(undefined);
-    const [error, setError] = useState<{
-        message: string;
-        errorCode?: string;
-        traceId?: string;
-    } | null>(null);
-    const [debugOpen, setDebugOpen] = useState(false);
+    const [highlightedId, setHighlightedId] = useState<string | undefined>();
 
+    const bottomRef = useRef<HTMLDivElement>(null);
+
+    // ── Initialise ───────────────────────────────────────────────────────────
     useEffect(() => {
         const pts = readPatients();
         setPatient(pts.find((p) => p.id === patientId) ?? null);
+
+        const savedRuns = loadRuns(patientId);
+        setRuns(savedRuns);
+        // Oldest-first in transcript
+        setMessages(savedRuns.slice().reverse().flatMap(entryToMsgs));
     }, [patientId]);
 
+    // Auto-scroll to bottom when new messages arrive
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages.length]);
+
+    // ── Diagnose ─────────────────────────────────────────────────────────────
     async function handleDiagnose() {
         if (!symptoms.trim()) return;
         setLoading(true);
-        setError(null);
-        setResults([]);
-        setTraceId(undefined);
-        setRawResponse(null);
-        setMode(null);
-        setSavedId(undefined);
 
         const start = Date.now();
+        const input = symptoms.trim();
+        setSymptoms('');
+
+        // Optimistic doctor message
+        const tempDoctorId = `tmp-${Date.now()}`;
+        const doctorMsg: ChatMsg = {
+            role: 'doctor',
+            id: tempDoctorId,
+            symptoms: input,
+            timestamp: new Date().toISOString(),
+        };
+        setMessages((prev) => [...prev, doctorMsg]);
+
         try {
-            const response = await diagnose({ symptoms });
+            const response = await diagnose({ symptoms: input });
             const latencyMs = Date.now() - start;
             const topResults = response.diagnoses.slice(0, 3);
 
-            setResults(topResults);
-            setTraceId(response.trace_id);
-            setMode(response.mode ?? null);
-            if (IS_DEV) setRawResponse(response);
-
             const entry = addHistoryEntry({
-                symptoms,
+                symptoms: input,
                 rawResponse: response,
                 parsedDiagnoses: topResults,
                 latencyMs,
@@ -69,31 +116,45 @@ export default function PatientPage() {
                 error: undefined,
             });
             addPatientRun(patientId, entry.id);
-            setSavedId(entry.id);
+
+            const assistantMsg: ChatMsg = {
+                role: 'assistant',
+                id: `${entry.id}-ast`,
+                diagnoses: topResults,
+                mode: entry.mode,
+                traceId: entry.traceId,
+                latencyMs,
+                timestamp: entry.createdAt,
+            };
+
+            setMessages((prev) => [...prev, assistantMsg]);
+            setRuns((prev) => [entry, ...prev]);
         } catch (err) {
             const latencyMs = Date.now() - start;
             let msg = 'An unexpected error occurred.';
-            let errorCode: string | undefined;
-            let errTraceId: string | undefined;
-
-            if (err instanceof ApiError) {
-                msg = err.message;
-                errorCode = err.errorCode;
-                errTraceId = err.traceId;
-            }
-            setError({ message: msg, errorCode, traceId: errTraceId });
+            if (err instanceof ApiError) msg = err.message;
 
             const entry = addHistoryEntry({
-                symptoms,
+                symptoms: input,
                 rawResponse: null,
                 parsedDiagnoses: [],
                 latencyMs,
-                traceId: errTraceId,
+                traceId: undefined,
                 mode: null,
                 error: msg,
             });
             addPatientRun(patientId, entry.id);
-            setSavedId(entry.id);
+
+            const assistantMsg: ChatMsg = {
+                role: 'assistant',
+                id: `${entry.id}-ast`,
+                diagnoses: [],
+                mode: null,
+                timestamp: entry.createdAt,
+                error: msg,
+            };
+            setMessages((prev) => [...prev, assistantMsg]);
+            setRuns((prev) => [entry, ...prev]);
         } finally {
             setLoading(false);
         }
@@ -103,10 +164,18 @@ export default function PatientPage() {
         setSymptoms((prev) => (prev ? `${prev} ${text}` : text));
     }
 
-    // Loading state
+    /** Scroll to a run's assistant message in the transcript */
+    function scrollToRun(entry: HistoryEntry) {
+        const targetId = `msg-${entry.id}-ast`;
+        setHighlightedId(targetId);
+        const el = document.getElementById(targetId);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        setTimeout(() => setHighlightedId(undefined), 1800);
+    }
+
+    // ── Render guards ────────────────────────────────────────────────────────
     if (patient === undefined) return null;
 
-    // Not found
     if (patient === null) {
         return (
             <div className="space-y-4">
@@ -119,138 +188,135 @@ export default function PatientPage() {
     }
 
     return (
-        <div className="space-y-6">
-            <header className="mb-8">
+        <div className="flex gap-6 h-[calc(100vh-120px)] min-h-[500px]">
+            {/* ── Sidebar ──────────────────────────────────────────────────── */}
+            <aside className="w-56 flex-shrink-0 flex flex-col gap-4">
                 <Link href="/" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
                     ← Back to Patients
                 </Link>
-                <div className="flex items-center gap-3 flex-wrap mt-3">
-                    <h1 className="text-3xl font-bold tracking-tight">{patient.name}</h1>
+
+                {/* Patient info */}
+                <div className="space-y-0.5">
+                    <h1 className="text-lg font-bold tracking-tight leading-tight">
+                        {patient.name}
+                    </h1>
                     {patient.age != null && (
-                        <span className="text-gray-500 dark:text-gray-400 text-lg">Age {patient.age}</span>
-                    )}
-                    {mode === 'demo' && (
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                            Demo Mode
-                        </span>
-                    )}
-                    {mode === 'fallback' && (
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                            Fallback Mode
-                        </span>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Age {patient.age}</p>
                     )}
                 </div>
-                <p className="text-gray-500 dark:text-gray-400 mt-2">
-                    Enter symptoms to receive differential diagnoses.
-                </p>
-            </header>
 
-            {/* Input */}
-            <Section title="Input Data">
-                <div className="space-y-4">
-                    <div className="flex flex-col gap-2">
-                        <label htmlFor="diagnose-input" className="text-sm font-medium">
-                            Symptoms
-                        </label>
-                        <div className="relative">
+                {/* Recent runs list */}
+                <div className="flex-1 overflow-y-auto">
+                    <h2 className="text-xs font-semibold uppercase tracking-wide text-gray-400 dark:text-gray-500 mb-2">
+                        Recent Runs
+                    </h2>
+                    {runs.length === 0 ? (
+                        <p className="text-xs text-gray-400 italic">No runs yet.</p>
+                    ) : (
+                        <ul className="space-y-1">
+                            {runs.map((entry) => {
+                                const astId = `msg-${entry.id}-ast`;
+                                const isHighlighted = highlightedId === astId;
+                                return (
+                                    <li key={entry.id}>
+                                        <button
+                                            type="button"
+                                            onClick={() => scrollToRun(entry)}
+                                            className={`w-full text-left text-xs rounded-md px-2 py-1.5 transition-colors truncate ${isHighlighted
+                                                    ? 'bg-blue-100 dark:bg-blue-900/40 text-blue-700 dark:text-blue-300'
+                                                    : 'hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-600 dark:text-gray-400'
+                                                }`}
+                                            title={entry.symptoms}
+                                        >
+                                            <span className="block truncate">{entry.symptoms}</span>
+                                            <span className="block text-gray-400 dark:text-gray-600">
+                                                {new Date(entry.createdAt).toLocaleTimeString([], {
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                })}
+                                                {entry.mode && entry.mode !== 'live'
+                                                    ? ` · ${entry.mode}`
+                                                    : ''}
+                                                {entry.error ? ' · ⚠ error' : ''}
+                                            </span>
+                                        </button>
+                                    </li>
+                                );
+                            })}
+                        </ul>
+                    )}
+                </div>
+            </aside>
+
+            {/* ── Chat panel ───────────────────────────────────────────────── */}
+            <div className="flex-1 flex flex-col min-w-0">
+                {/* Transcript */}
+                <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+                    {messages.length === 0 && !loading && (
+                        <div className="flex flex-col items-center justify-center h-full text-gray-400 dark:text-gray-600">
+                            <p className="text-4xl mb-2">💬</p>
+                            <p className="text-sm">Enter symptoms below to start a diagnosis run.</p>
+                        </div>
+                    )}
+
+                    {messages.map((msg) => (
+                        <div
+                            key={msg.id}
+                            id={`msg-${msg.id}`}
+                            className={`transition-colors duration-700 rounded-xl ${highlightedId === `msg-${msg.id}`
+                                    ? 'bg-blue-50 dark:bg-blue-900/20'
+                                    : ''
+                                }`}
+                        >
+                            <ChatMessage msg={msg} />
+                        </div>
+                    ))}
+
+                    {loading && (
+                        <div className="flex justify-start">
+                            <div className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-2xl rounded-tl-sm px-4 py-3 text-sm text-gray-400 shadow-sm">
+                                Analysing…
+                            </div>
+                        </div>
+                    )}
+
+                    <div ref={bottomRef} />
+                </div>
+
+                {/* Input area */}
+                <div className="pt-3 border-t border-gray-200 dark:border-gray-700 mt-3">
+                    <div className="flex gap-2 items-end">
+                        <div className="relative flex-1">
                             <textarea
                                 id="diagnose-input"
-                                className="w-full min-h-[150px] p-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                rows={3}
+                                className="w-full p-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-lg bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none text-sm"
                                 placeholder="Describe the patient's symptoms…"
                                 value={symptoms}
                                 onChange={(e) => setSymptoms(e.target.value)}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) handleDiagnose();
+                                }}
                             />
-                            <div className="absolute top-2 right-2">
+                            <div className="absolute bottom-2 right-2">
                                 <VoiceInputButton onTranscript={handleVoiceTranscript} />
                             </div>
                         </div>
+                        <button
+                            type="button"
+                            aria-label="Start diagnosis"
+                            disabled={loading || !symptoms.trim()}
+                            onClick={handleDiagnose}
+                            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-lg font-medium transition-colors text-sm whitespace-nowrap"
+                        >
+                            {loading ? 'Diagnosing…' : 'Diagnose'}
+                        </button>
                     </div>
-                    <button
-                        type="button"
-                        aria-label="Start diagnosis"
-                        disabled={loading || !symptoms.trim()}
-                        onClick={handleDiagnose}
-                        className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md font-medium transition-colors w-max"
-                    >
-                        {loading ? 'Diagnosing…' : 'Diagnose'}
-                    </button>
-                </div>
-            </Section>
-
-            {/* Error banner */}
-            {error && (
-                <div
-                    role="alert"
-                    className="p-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-300 space-y-1"
-                >
-                    <p className="font-semibold">
-                        {error.errorCode ? `Error ${error.errorCode}` : 'Error'}
-                    </p>
-                    <p className="text-sm">{error.message}</p>
-                    {error.traceId && (
-                        <p className="text-xs text-red-500 dark:text-red-400 font-mono">
-                            trace_id: {error.traceId}
-                        </p>
+                    {IS_DEV && (
+                        <p className="text-xs text-gray-400 mt-1">⌘+Enter to submit</p>
                     )}
                 </div>
-            )}
-
-            {/* Results */}
-            <Section title="Results">
-                {results.length === 0 && !loading ? (
-                    <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-900/50">
-                        <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-                            No results to display.
-                        </p>
-                        <p className="text-sm mt-1">Submit data above to view results here.</p>
-                    </div>
-                ) : (
-                    <div className="space-y-3">
-                        {savedId && results.length > 0 && (
-                            <div className="flex items-center gap-2 text-sm">
-                                <span className="text-gray-500 dark:text-gray-400">Saved to history.</span>
-                                <a
-                                    href={`/result/${savedId}`}
-                                    className="text-blue-600 dark:text-blue-400 underline hover:no-underline font-medium"
-                                >
-                                    Open full report →
-                                </a>
-                            </div>
-                        )}
-                        {mode && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 italic">
-                                Results sourced from fixture data.
-                            </p>
-                        )}
-                        {traceId && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 font-mono">
-                                trace_id: {traceId}
-                            </p>
-                        )}
-                        {results.map((item) => (
-                            <DiagnosisCard key={`${item.rank}-${item.icd10_code}`} item={item} />
-                        ))}
-                    </div>
-                )}
-            </Section>
-
-            {/* Dev-only raw response debug panel */}
-            {IS_DEV && rawResponse && (
-                <Section title="Debug">
-                    <button
-                        type="button"
-                        onClick={() => setDebugOpen((o) => !o)}
-                        className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 underline"
-                    >
-                        {debugOpen ? 'Hide' : 'Show'} raw response
-                    </button>
-                    {debugOpen && (
-                        <pre className="mt-3 p-3 rounded bg-gray-100 dark:bg-gray-800 text-xs overflow-x-auto text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
-                            {JSON.stringify(rawResponse, null, 2)}
-                        </pre>
-                    )}
-                </Section>
-            )}
+            </div>
         </div>
     );
 }
