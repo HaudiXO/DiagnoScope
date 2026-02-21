@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { SunIcon, MoonIcon } from './components/ui/Icon';
+import { USE_MOCK } from './lib/demoMode';
 import './globals.css';
 
 // Can't export metadata from a client component — keep it here as a comment for reference.
@@ -46,6 +47,41 @@ function ThemeToggle() {
   );
 }
 
+function Footer() {
+  const [mode, setMode] = useState<string>(USE_MOCK ? 'demo' : 'live');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem('dx_history_v1');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && parsed.length > 0) {
+          const last = parsed[0].mode;
+          if (last) setMode(last);
+        }
+      }
+    } catch { }
+
+    const handler = (e: Event) => {
+      const custom = e as CustomEvent<string>;
+      setMode(custom.detail);
+    };
+    window.addEventListener('medassist-mode', handler);
+    return () => window.removeEventListener('medassist-mode', handler);
+  }, []);
+
+  return (
+    <footer className="mt-auto border-t border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-center text-xs text-[var(--color-muted)] flex flex-col items-center gap-2 w-full">
+      <p>
+        <strong>Demo Disclaimer:</strong> This application is for demonstration purposes only. Not intended for actual medical use.
+      </p>
+      <p>
+        Current mode: <span className="font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[var(--color-fg)]">{mode}</span>
+      </p>
+    </footer>
+  );
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -64,7 +100,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="min-h-screen antialiased" style={{ background: 'var(--color-bg)', color: 'var(--color-fg)' }}>
+      <body className="min-h-screen antialiased flex flex-col w-full overflow-x-hidden" style={{ background: 'var(--color-bg)', color: 'var(--color-fg)' }}>
         <header
           style={{
             borderBottom: '1px solid var(--color-border)',
@@ -98,7 +134,8 @@ export default function RootLayout({
             <ThemeToggle />
           </div>
         </header>
-        <main className="max-w-5xl mx-auto px-6 py-8">{children}</main>
+        <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+        <Footer />
       </body>
     </html>
   );

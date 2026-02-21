@@ -108,6 +108,7 @@ export default function PatientPage() {
 
             if (IS_DEV) setRawResponse(response);
             setLastMode(response.mode ?? 'live');
+            window.dispatchEvent(new CustomEvent('medassist-mode', { detail: response.mode ?? 'live' }));
 
             const entry = addHistoryEntry({
                 symptoms: trimmed,
@@ -279,7 +280,7 @@ export default function PatientPage() {
                             <VoiceInputButton onTranscript={handleVoiceTranscript} />
                         </div>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex flex-wrap items-center gap-3">
                         <button
                             type="button"
                             aria-label="Start diagnosis"
