@@ -31,6 +31,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 Set `NEXT_PUBLIC_USE_MOCK=true` in `.env.local` to run entirely from local fixture data — no backend required.
 
+Интерфейс на русском по умолчанию.
+
 ## Technologies
 
 - Next.js 16 (App Router)

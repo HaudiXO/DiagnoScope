@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { SunIcon, MoonIcon } from './components/ui/Icon';
 import { USE_MOCK } from './lib/demoMode';
+import { I18nProvider, useI18n } from '../lib/i18n';
 import './globals.css';
 
 // Can't export metadata from a client component — keep it here as a comment for reference.
@@ -47,7 +48,22 @@ function ThemeToggle() {
   );
 }
 
+function LangToggle() {
+  const { lang, setLang } = useI18n();
+  return (
+    <button
+      type="button"
+      onClick={() => setLang(lang === 'ru' ? 'en' : 'ru')}
+      aria-label="Toggle language"
+      className="p-2 text-xs font-bold rounded-[var(--radius-md)] text-[var(--color-muted)] hover:text-[var(--color-fg)] hover:bg-[var(--color-border)] transition-colors focus-ring uppercase"
+    >
+      {lang}
+    </button>
+  );
+}
+
 function Footer() {
+  const { t } = useI18n();
   const [mode, setMode] = useState<string>(USE_MOCK ? 'demo' : 'live');
 
   useEffect(() => {
@@ -70,15 +86,62 @@ function Footer() {
     return () => window.removeEventListener('medassist-mode', handler);
   }, []);
 
+  let displayMode = mode;
+  if (mode === 'demo') displayMode = t.modeDemo || 'demo';
+  else if (mode === 'fallback') displayMode = t.modeFallback || 'fallback';
+  else if (mode === 'live') displayMode = t.modeLive || 'live';
+
   return (
     <footer className="mt-auto border-t border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-center text-xs text-[var(--color-muted)] flex flex-col items-center gap-2 w-full">
       <p>
-        <strong>Demo Disclaimer:</strong> This application is for demonstration purposes only. Not intended for actual medical use.
+        <strong>{t.demoDisclaimerTitle}</strong> {t.demoDisclaimerText}
       </p>
       <p>
-        Current mode: <span className="font-semibold uppercase px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[var(--color-fg)]">{mode}</span>
+        {t.currentMode} <span className="font-semibold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[var(--color-fg)]">{displayMode}</span>
       </p>
     </footer>
+  );
+}
+
+function Header() {
+  const { t } = useI18n();
+  return (
+    <header
+      style={{
+        borderBottom: '1px solid var(--color-border)',
+        background: 'var(--color-surface)',
+      }}
+      className="sticky top-0 z-10"
+    >
+      <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="flex items-center gap-6">
+          <Link
+            href="/"
+            className="font-bold text-base tracking-tight hover:text-[var(--color-primary)] transition-colors"
+          >
+            🩺 MedAssist
+          </Link>
+          <nav className="flex gap-4">
+            <Link
+              href="/"
+              className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+            >
+              {t.navPatients}
+            </Link>
+            <Link
+              href="/history"
+              className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+            >
+              {t.navHistory}
+            </Link>
+          </nav>
+        </div>
+        <div className="flex items-center gap-2">
+          <LangToggle />
+          <ThemeToggle />
+        </div>
+      </div>
+    </header>
   );
 }
 
@@ -89,7 +152,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      {/* Anti-flash script: runs before React hydrates */}
       <head>
         <title>MedAssist Demo</title>
         <meta name="description" content="Hackathon Demo UI" />
@@ -101,41 +163,11 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased flex flex-col w-full overflow-x-hidden" style={{ background: 'var(--color-bg)', color: 'var(--color-fg)' }}>
-        <header
-          style={{
-            borderBottom: '1px solid var(--color-border)',
-            background: 'var(--color-surface)',
-          }}
-          className="sticky top-0 z-10"
-        >
-          <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
-            <div className="flex items-center gap-6">
-              <Link
-                href="/"
-                className="font-bold text-base tracking-tight hover:text-[var(--color-primary)] transition-colors"
-              >
-                🩺 MedAssist
-              </Link>
-              <nav className="flex gap-4">
-                <Link
-                  href="/"
-                  className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
-                >
-                  Patients
-                </Link>
-                <Link
-                  href="/history"
-                  className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
-                >
-                  History
-                </Link>
-              </nav>
-            </div>
-            <ThemeToggle />
-          </div>
-        </header>
-        <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
-        <Footer />
+        <I18nProvider>
+          <Header />
+          <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+          <Footer />
+        </I18nProvider>
       </body>
     </html>
   );

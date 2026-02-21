@@ -6,6 +6,7 @@ import DiagnosisCard from '../../components/DiagnosisCard';
 import SafetyBanner from '../../components/SafetyBanner';
 import PrintReport from '../../components/PrintReport';
 import { getHistoryEntry, type HistoryEntry } from '../../lib/history';
+import { useI18n } from '../../../lib/i18n';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -15,6 +16,7 @@ interface Props {
 type DetailLevel = 'short' | 'detailed';
 
 export default function ResultDetailPage({ params }: Props) {
+    const { t } = useI18n();
     const { id } = use(params);
     const [entry, setEntry] = useState<HistoryEntry | null | undefined>(undefined); // undefined = loading
     const [detailLevel, setDetailLevel] = useState<DetailLevel>('short');
@@ -31,9 +33,9 @@ export default function ResultDetailPage({ params }: Props) {
         return (
             <div className="space-y-6">
                 <header className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">Diagnosis Result</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t.diagnosisResult}</h1>
                 </header>
-                <p className="text-gray-500 dark:text-gray-400">Loading…</p>
+                <p className="text-gray-500 dark:text-gray-400">{t.loading}</p>
             </div>
         );
     }
@@ -43,22 +45,21 @@ export default function ResultDetailPage({ params }: Props) {
         return (
             <div className="space-y-6">
                 <header className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight">Diagnosis Result</h1>
+                    <h1 className="text-3xl font-bold tracking-tight">{t.diagnosisResult}</h1>
                 </header>
                 <div
                     role="alert"
                     className="p-6 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-700 text-center space-y-2"
                 >
-                    <p className="text-lg font-medium text-gray-600 dark:text-gray-400">Result not found.</p>
+                    <p className="text-lg font-medium text-gray-600 dark:text-gray-400">{t.resultNotFound}</p>
                     <p className="text-sm text-gray-500 dark:text-gray-500">
-                        ID <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{id}</code> was
-                        not found in localStorage. It may have been cleared.
+                        {t.idWord} <code className="bg-gray-100 dark:bg-gray-800 px-1.5 py-0.5 rounded">{id}</code> {t.notFoundDesc}
                     </p>
                     <a
                         href="/history"
                         className="inline-block mt-2 text-blue-600 dark:text-blue-400 underline hover:no-underline text-sm"
                     >
-                        ← Back to History
+                        {t.backToHistory}
                     </a>
                 </div>
             </div>
@@ -80,6 +81,10 @@ export default function ResultDetailPage({ params }: Props) {
         }))
         : parsedDiagnoses;
 
+    let displayMode = mode;
+    if (mode === 'demo') displayMode = t.modeDemo || mode;
+    if (mode === 'fallback') displayMode = t.modeFallback || mode;
+
     return (
         <div className="space-y-6">
             {/* Print-only report (hidden on screen) */}
@@ -88,7 +93,7 @@ export default function ResultDetailPage({ params }: Props) {
                     symptoms={symptoms}
                     createdAt={createdAt}
                     traceId={traceId}
-                    mode={mode}
+                    mode={mode as any}
                     diagnoses={parsedDiagnoses}
                 />
             )}
@@ -96,17 +101,17 @@ export default function ResultDetailPage({ params }: Props) {
             <header className="mb-8 print:hidden">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Diagnosis Result</h1>
+                        <h1 className="text-3xl font-bold tracking-tight">{t.diagnosisResult}</h1>
                         <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
                             {new Date(createdAt).toLocaleString()}
                             {mode && mode !== 'live' && (
                                 <span className="ml-2 inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-800 dark:bg-amber-900 dark:text-amber-200">
-                                    {mode}
+                                    {displayMode}
                                 </span>
                             )}
                             {traceId && (
                                 <span className="ml-2 font-mono text-xs text-gray-400 dark:text-gray-600">
-                                    trace_id: {traceId}
+                                    {t.traceId} {traceId}
                                 </span>
                             )}
                             {latencyMs !== undefined && (
@@ -123,21 +128,21 @@ export default function ResultDetailPage({ params }: Props) {
                                 type="button"
                                 onClick={() => setDetailLevel('short')}
                                 className={`px-3 py-1.5 transition-colors ${detailLevel === 'short'
-                                        ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                                     }`}
                             >
-                                Short
+                                {t.shortLevel}
                             </button>
                             <button
                                 type="button"
                                 onClick={() => setDetailLevel('detailed')}
                                 className={`px-3 py-1.5 transition-colors border-l border-gray-300 dark:border-gray-700 ${detailLevel === 'detailed'
-                                        ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
-                                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                                    ? 'bg-gray-800 text-white dark:bg-gray-200 dark:text-gray-900'
+                                    : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                                     }`}
                             >
-                                Detailed
+                                {t.detailedLevel}
                             </button>
                         </div>
                         {/* G2: Export */}
@@ -147,14 +152,14 @@ export default function ResultDetailPage({ params }: Props) {
                                 onClick={() => window.print()}
                                 className="px-3 py-1.5 text-xs font-medium rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                             >
-                                Export report
+                                {t.exportReport}
                             </button>
                         )}
                         <a
                             href="/history"
                             className="text-xs text-blue-600 dark:text-blue-400 underline hover:no-underline"
                         >
-                            ← History
+                            {t.arrowHistory}
                         </a>
                     </div>
                 </div>
@@ -169,18 +174,18 @@ export default function ResultDetailPage({ params }: Props) {
                     role="alert"
                     className="p-4 rounded-lg border border-red-300 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-300 print:hidden"
                 >
-                    <p className="font-semibold">This run ended with an error</p>
+                    <p className="font-semibold">{t.runEndedWithError}</p>
                     <p className="text-sm mt-1">{error}</p>
                 </div>
             )}
 
             {/* Symptoms */}
-            <Section title="Symptoms">
+            <Section title={t.symptoms}>
                 <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{symptoms}</p>
             </Section>
 
             {/* Diagnoses */}
-            <Section title="Diagnoses">
+            <Section title={t.diagnosesHeading}>
                 {hasDiagnoses ? (
                     <div className="space-y-3">
                         {displayDiagnoses.map((item) => (
@@ -191,14 +196,14 @@ export default function ResultDetailPage({ params }: Props) {
                     /* Fallback: parsedDiagnoses empty but rawResponse available */
                     <div className="space-y-3">
                         <p className="text-sm text-amber-700 dark:text-amber-400">
-                            No parsed diagnoses available. Raw response shown below for debugging.
+                            {t.noParsedDiagnoses}
                         </p>
                         <button
                             type="button"
                             onClick={() => setDebugOpen((o) => !o)}
                             className="text-xs text-gray-500 underline hover:no-underline"
                         >
-                            {debugOpen ? 'Hide' : 'Show'} raw response
+                            {debugOpen ? t.hideRaw : t.showRaw}
                         </button>
                         {debugOpen && (
                             <pre className="mt-2 p-3 rounded bg-gray-100 dark:bg-gray-800 text-xs overflow-x-auto text-gray-700 dark:text-gray-300 whitespace-pre-wrap break-all">
@@ -208,7 +213,7 @@ export default function ResultDetailPage({ params }: Props) {
                     </div>
                 ) : (
                     <div className="flex flex-col items-center justify-center p-8 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-900/50">
-                        <p className="text-sm">No diagnosis data available for this run.</p>
+                        <p className="text-sm">{t.noData}</p>
                     </div>
                 )}
             </Section>

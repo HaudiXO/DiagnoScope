@@ -16,6 +16,7 @@ import {
 } from './lib/patients';
 import { safeStorageGet, safeStorageSet } from './lib/safeStorage';
 import type { HistoryEntry } from './lib/history';
+import { useI18n } from '../lib/i18n';
 
 type SortKey = 'updated' | 'name' | 'warnings';
 
@@ -31,6 +32,7 @@ function getBannerWarnings(run: HistoryEntry | undefined): number {
 }
 
 export default function PatientsPage() {
+  const { t } = useI18n();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [lastRuns, setLastRuns] = useState<Record<string, HistoryEntry | undefined>>({});
   const [showForm, setShowForm] = useState(false);
@@ -127,26 +129,26 @@ export default function PatientsPage() {
         >
           <button
             onClick={dismissBanner}
-            aria-label="Dismiss"
+            aria-label={t.dismiss}
             className="absolute top-3 right-3 text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors text-lg leading-none"
           >
             ×
           </button>
           <p className="font-semibold mb-3" style={{ color: 'var(--color-primary)' }}>
-            👋 Getting started
+            {t.gettingStartedTitle}
           </p>
           <ol className="space-y-1.5 text-sm" style={{ color: 'var(--color-muted)' }}>
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>1. Select a patient</span>
-              {' '}— click &ldquo;Open chat&rdquo; on any card below.
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep1Title}</span>
+              {t.gsStep1Desc}
             </li>
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>2. Enter symptoms</span>
-              {' '}— describe the chief complaint and run an assessment.
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep2Title}</span>
+              {t.gsStep2Desc}
             </li>
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>3. Compare dynamics</span>
-              {' '}— use the compare panel to track changes across visits.
+              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep3Title}</span>
+              {t.gsStep3Desc}
             </li>
           </ol>
         </div>
@@ -155,9 +157,9 @@ export default function PatientsPage() {
       {/* Page header */}
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t.patientsTitle}</h1>
           <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
-            {patients.length} patient{patients.length !== 1 ? 's' : ''} on file
+            {t.patientsOnFile(patients.length)}
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
@@ -166,16 +168,16 @@ export default function PatientsPage() {
             onClick={() => setShowForm((v) => !v)}
           >
             {showForm ? (
-              'Cancel'
+              t.cancel
             ) : (
               <>
                 <PlusIcon size={15} className="mr-1.5" />
-                Add patient
+                {t.addPatient}
               </>
             )}
           </Button>
           <Button variant="danger" onClick={handleReset}>
-            Reset demo data
+            {t.resetDemoData}
           </Button>
         </div>
       </header>
@@ -186,16 +188,16 @@ export default function PatientsPage() {
           <form onSubmit={handleAdd} className="flex gap-3 flex-wrap">
             <Input
               required
-              aria-label="Full name"
-              placeholder="Full name"
+              aria-label={t.fullName}
+              placeholder={t.fullName}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="flex-1 min-w-[160px]"
             />
             <Input
               type="number"
-              aria-label="Age (optional)"
-              placeholder="Age (optional)"
+              aria-label={t.ageOptional}
+              placeholder={t.ageOptional}
               min={0}
               max={130}
               value={age}
@@ -203,7 +205,7 @@ export default function PatientsPage() {
               className="w-32"
             />
             <Button type="submit" variant="primary">
-              Add
+              {t.add}
             </Button>
           </form>
         </Card>
@@ -214,14 +216,14 @@ export default function PatientsPage() {
         <div className="flex gap-3 flex-wrap items-center">
           <Input
             type="search"
-            aria-label="Search patients"
-            placeholder="Search by name or symptoms…"
+            aria-label={t.searchPlaceholder}
+            placeholder={t.searchPlaceholder}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 min-w-[200px]"
           />
           <select
-            aria-label="Sort patients"
+            aria-label={t.patientsTitle}
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
             className={[
@@ -229,9 +231,9 @@ export default function PatientsPage() {
               'bg-[var(--color-surface)] text-[var(--color-fg)] focus-ring transition-colors',
             ].join(' ')}
           >
-            <option value="updated">Last updated</option>
-            <option value="name">Name A→Z</option>
-            <option value="warnings">Most warnings</option>
+            <option value="updated">{t.sortLastUpdated}</option>
+            <option value="name">{t.sortNameAZ}</option>
+            <option value="warnings">{t.sortMostWarnings}</option>
           </select>
         </div>
       )}
@@ -248,16 +250,16 @@ export default function PatientsPage() {
           className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed"
           style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
         >
-          <p className="text-lg font-medium">No patients yet.</p>
-          <p className="text-sm mt-1">Add a patient or click &ldquo;Reset demo data&rdquo; to seed examples.</p>
+          <p className="text-lg font-medium">{t.noPatientsTitle}</p>
+          <p className="text-sm mt-1">{t.noPatientsDesc}</p>
         </div>
       ) : sorted.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center p-10 rounded-[var(--radius-lg)] border-2 border-dashed"
           style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
         >
-          <p className="text-base font-medium">No results for &ldquo;{search}&rdquo;</p>
-          <p className="text-sm mt-1">Try a different name or symptom keyword.</p>
+          <p className="text-base font-medium">{t.noResultsTitle(search)}</p>
+          <p className="text-sm mt-1">{t.noResultsDesc}</p>
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">

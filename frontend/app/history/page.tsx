@@ -9,25 +9,32 @@ import {
     clearHistory,
     type HistoryEntry,
 } from '../lib/history';
+import { useI18n } from '../../lib/i18n';
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleString();
 }
 
-function modeBadge(mode: HistoryEntry['mode']) {
+function modeBadge(mode: HistoryEntry['mode'], t: any) {
     if (!mode || mode === 'live') return null;
     const cls =
         mode === 'demo'
             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
             : 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+
+    let label = mode;
+    if (mode === 'demo') label = t.modeDemo || mode;
+    if (mode === 'fallback') label = t.modeFallback || mode;
+
     return (
         <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}>
-            {mode}
+            {label}
         </span>
     );
 }
 
 export default function HistoryPage() {
+    const { t } = useI18n();
     const router = useRouter();
     const [entries, setEntries] = useState<HistoryEntry[]>([]);
     const [corruptWarning, setCorruptWarning] = useState(false);
@@ -49,7 +56,7 @@ export default function HistoryPage() {
     }, []);
 
     function handleClear() {
-        if (window.confirm('Clear all history? This cannot be undone.')) {
+        if (window.confirm(t.clearConfirm || 'Clear all history?')) {
             clearHistory();
             load();
         }
@@ -90,8 +97,8 @@ export default function HistoryPage() {
             <header className="mb-8">
                 <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
-                        <h1 className="text-3xl font-bold tracking-tight">History</h1>
-                        <p className="text-gray-500 dark:text-gray-400 mt-2">Previous diagnoses.</p>
+                        <h1 className="text-3xl font-bold tracking-tight">{t.historyTitle}</h1>
+                        <p className="text-gray-500 dark:text-gray-400 mt-2">{t.prevDiagnoses}</p>
                     </div>
                     {entries.length > 0 && (
                         <button
@@ -99,7 +106,7 @@ export default function HistoryPage() {
                             onClick={handleClear}
                             className="text-sm text-red-600 dark:text-red-400 border border-red-300 dark:border-red-700 rounded-md px-3 py-1.5 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                         >
-                            Clear history
+                            {t.clearHistory}
                         </button>
                     )}
                 </div>
@@ -111,7 +118,7 @@ export default function HistoryPage() {
                     role="status"
                     className="p-3 rounded-lg border border-amber-300 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-800 dark:text-amber-300 text-sm"
                 >
-                    History data was corrupt and has been reset.
+                    {t.historyCorrupt}
                 </div>
             )}
 
@@ -119,9 +126,7 @@ export default function HistoryPage() {
             {selected.size > 0 && (
                 <div className="flex items-center gap-3 p-3 rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-sm">
                     <span className="text-blue-800 dark:text-blue-200">
-                        {selected.size === 2
-                            ? 'Ready to compare.'
-                            : 'Select one more to compare.'}
+                        {selected.size === 2 ? t.readyToCompare : t.selectOneMoreToCompare}
                     </span>
                     {selected.size === 2 && (
                         <button
@@ -129,7 +134,7 @@ export default function HistoryPage() {
                             onClick={handleCompare}
                             className="px-3 py-1 bg-blue-600 text-white rounded-md text-xs font-medium hover:bg-blue-700 transition-colors"
                         >
-                            Compare
+                            {t.compare}
                         </button>
                     )}
                     <button
@@ -137,18 +142,18 @@ export default function HistoryPage() {
                         onClick={() => { setSelected(new Set()); setCompareIds(null); }}
                         className="text-xs text-blue-600 dark:text-blue-400 underline hover:no-underline ml-auto"
                     >
-                        Cancel
+                        {t.cancel}
                     </button>
                 </div>
             )}
 
-            <Section title="Recent Analyses">
+            <Section title={t.recentAnalyses}>
                 {entries.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500 bg-gray-50 dark:bg-gray-900/50">
                         <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-                            No history available yet.
+                            {t.noHistoryTitle}
                         </p>
-                        <p className="text-sm mt-1">Once you run a diagnosis, it will appear here.</p>
+                        <p className="text-sm mt-1">{t.noHistoryDesc}</p>
                     </div>
                 ) : (
                     <ul className="divide-y divide-gray-200 dark:divide-gray-800">
@@ -176,9 +181,9 @@ export default function HistoryPage() {
                                             <span className="text-xs text-gray-400 dark:text-gray-500">
                                                 {formatDate(entry.createdAt)}
                                             </span>
-                                            {modeBadge(entry.mode)}
+                                            {modeBadge(entry.mode, t)}
                                             {entry.error && (
-                                                <span className="text-xs text-red-500 dark:text-red-400">error</span>
+                                                <span className="text-xs text-red-500 dark:text-red-400">{t.errorWord}</span>
                                             )}
                                             <span className="text-xs text-gray-400 dark:text-gray-600">
                                                 {entry.latencyMs}ms
@@ -200,14 +205,14 @@ export default function HistoryPage() {
                                             href={`/result/${entry.id}`}
                                             className="text-blue-600 dark:text-blue-400 underline hover:no-underline"
                                         >
-                                            View
+                                            {t.view}
                                         </a>
                                         <button
                                             type="button"
                                             onClick={() => handleRerun(entry.symptoms)}
                                             className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 underline hover:no-underline"
                                         >
-                                            Rerun
+                                            {t.rerun}
                                         </button>
                                     </div>
                                 </li>
