@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hack-NU — Medical Diagnosis Assistant
 
-## Getting Started
+A hackathon project: an AI-powered medical diagnosis assistant with a Next.js frontend and a Python FastAPI backend.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Repo Structure
+
+```
+.
+├── app/              # Next.js app (pages, components, lib)
+├── public/           # Static assets
+├── src/              # Python backend (FastAPI, mock server)
+├── data/             # Evaluation dataset (test cases)
+├── extras/           # Optional extras (notebooks, experiments)
+├── docs/             # Project documentation
+├── evaluate.py       # Evaluator script (DO NOT MODIFY)
+├── pyproject.toml    # Python dependencies (uv)
+├── uv.lock           # Locked Python deps
+├── Dockerfile        # Runs Python backend
+├── package.json      # Node.js / Next.js deps
+└── README.md         # This file
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Running the Frontend (Next.js)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 1. Install dependencies
+npm install
 
-## Learn More
+# 2. Copy env template and fill in values
+cp .env.local.example .env.local
 
-To learn more about Next.js, take a look at the following resources:
+# 3. Start dev server
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+For full demo instructions and page routes, see [`README_DEMO.md`](./README_DEMO.md).
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Running the Backend (Python / FastAPI)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+### Option A — with uv (recommended)
+
+```bash
+uv sync
+uv run uvicorn src.mock_server:app --reload --port 8000
+```
+
+### Option B — Docker
+
+```bash
+docker build -t hack-nu .
+docker run -p 8000:8000 hack-nu
+```
+
+Backend runs at [http://localhost:8000](http://localhost:8000).
+
+---
+
+## Running the Evaluator
+
+```bash
+uv run python evaluate.py
+```
+
+Requires the backend to be running on port 8000.
+
+---
+
+## Environment Variables
+
+Copy `.env.local.example` → `.env.local` before running the frontend:
+
+| Variable | Default | Description |
+|---|---|---|
+| `NEXT_PUBLIC_API_BASE` | `http://localhost:8000` | Backend API base URL |
+| `NEXT_PUBLIC_USE_MOCK` | `false` | Use local fixture data instead of live backend |

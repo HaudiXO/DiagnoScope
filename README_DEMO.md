@@ -1,30 +1,44 @@
-# Hackathon Demo UI
+# Demo UI — Run Instructions
 
-This directory contains the minimal frontend for the hackathon demo.
+The Next.js frontend lives at the **repo root** (not a subfolder).
 
-## Technologies Used
-- Next.js (App Router)
-- React
-- Tailwind CSS
-- TypeScript
+## Quick Start
 
-## How to run the frontend
+```bash
+# Install dependencies (first time only)
+npm install
 
-1. Make sure you have Node.js and npm installed.
-2. Install dependencies (if not already installed):
-   ```bash
-   npm install
-   ```
-3. Run the development server:
-   ```bash
-   npm run dev
-   ```
-4. Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# Copy env template
+cp .env.local.example .env.local
+# Edit .env.local if your backend is on a different port
+
+# Start dev server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000).
 
 ## Pages
-- `/` - Diagnose page (input data)
-- `/history` - History page (view previous analyses)
-- `/result/[id]` - Result detail page (view specific analysis)
+
+| Route | Description |
+|---|---|
+| `/` | Patient dashboard — lists all patients, add new |
+| `/patient/[id]` | Patient detail — chat, diagnose, task board |
+| `/result/[id]` | Diagnosis result detail + compare mode |
+| `/history` | Global diagnosis history |
+
+## Demo Mode (no backend)
+
+Set `NEXT_PUBLIC_USE_MOCK=true` in `.env.local` to run entirely from local fixture data — no backend required.
+
+## Technologies
+
+- Next.js 16 (App Router)
+- React 19
+- TypeScript
+- Tailwind CSS v4
+- Zod (schema validation)
 
 ## API Contract
-The frontend is built to respect `CONTRACT.md` (which will be implemented later). Currently, the UI uses placeholders and static empty states.
+
+The frontend calls `POST /diagnose` on the backend. See [`src/mock_server.py`](./src/mock_server.py) for the API definition.
