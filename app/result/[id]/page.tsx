@@ -81,7 +81,7 @@ export default function ResultDetailPage({ params }: Props) {
         }))
         : parsedDiagnoses;
 
-    let displayMode = mode;
+    let displayMode: string | null = mode;
     if (mode === 'demo') displayMode = t.modeDemo || mode;
     if (mode === 'fallback') displayMode = t.modeFallback || mode;
 
