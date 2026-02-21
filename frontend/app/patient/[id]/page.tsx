@@ -308,6 +308,12 @@ export default function PatientPage() {
                             </button>
                         )}
                     </div>
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
+                        <button type="button" onClick={() => setSymptoms("Chest pain radiating to left arm with shortness of breath and sweating")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #1</button>
+                        <button type="button" onClick={() => setSymptoms("Persistent dry cough, wheezing, shortness of breath worsening at night")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #2</button>
+                        <button type="button" onClick={() => setSymptoms("Severe unilateral headache with nausea, photophobia, and visual aura")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #3</button>
+                        <button type="button" onClick={() => setSymptoms("Crampy lower abdominal pain, diarrhoea, nausea, and low-grade fever")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #4</button>
+                    </div>
                 </div>
 
                 {/* Dev-only debug panel */}
