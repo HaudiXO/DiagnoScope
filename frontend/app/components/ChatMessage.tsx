@@ -52,7 +52,7 @@ function safeCode(item: DiagnosisItem): string {
 
 function ModeBadge({ mode }: { mode: FixtureMode | 'live' | null }) {
     if (!mode || mode === 'live') return null;
-    const label = mode === 'demo' ? 'Demo' : 'Fallback';
+    const label = mode === 'demo' ? 'Демо' : 'Фолбэк';
     const cls =
         mode === 'demo'
             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
@@ -61,7 +61,7 @@ function ModeBadge({ mode }: { mode: FixtureMode | 'live' | null }) {
         <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
         >
-            {label} Mode
+            Режим {label}
         </span>
     );
 }
@@ -95,7 +95,7 @@ function CopyIcdButton({ diagnoses }: { diagnoses: DiagnosisItem[] }) {
             aria-label="Copy ICD-10 codes to clipboard"
             className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline transition-colors"
         >
-            {copied ? '✓ Copied!' : 'Copy ICD-10 codes'}
+            {copied ? '✓ Скопировано!' : 'Скопировать коды МКБ-10'}
         </button>
     );
 }
@@ -110,7 +110,7 @@ function DoctorBubble({ msg, onReuse }: { msg: DoctorMessage; onReuse?: (text: s
             <div className="max-w-[80%] space-y-1 flex flex-col items-end">
                 <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
                     <p className="whitespace-pre-wrap break-words">
-                        {msg.symptoms || <em className="opacity-60">(empty)</em>}
+                        {msg.symptoms || <em className="opacity-60">(пусто)</em>}
                     </p>
                 </div>
                 <div className="flex items-center gap-3">
@@ -120,7 +120,7 @@ function DoctorBubble({ msg, onReuse }: { msg: DoctorMessage; onReuse?: (text: s
                             onClick={() => onReuse(msg.symptoms)}
                             className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline transition-colors"
                         >
-                            Use this as new input
+                            Использовать как новый ввод
                         </button>
                     )}
                     <p className="text-right text-xs text-gray-400 dark:text-gray-500">
@@ -147,7 +147,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                 {/* Header */}
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
-                        Assistant
+                        Ассистент
                     </span>
                     <ModeBadge mode={msg.mode} />
                     {msg.traceId && (
@@ -164,10 +164,10 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
 
                 {/* Error state */}
                 {msg.error && (
-                    <Alert variant="error" title="Analysis Issue">
+                    <Alert variant="error" title="Проблема с анализом">
                         <p>{msg.error}</p>
                         <p className="mt-2 text-xs opacity-80">
-                            Please check your connection or provide more specific symptoms.
+                            <p>Пожалуйста, проверьте подключение или предоставьте более конкретные симптомы.</p>
                         </p>
                     </Alert>
                 )}
@@ -175,7 +175,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                 {/* Empty diagnoses (non-error) */}
                 {!msg.error && safeDiagnoses.length === 0 && (
                     <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-3 text-sm text-gray-500">
-                        No diagnoses returned.
+                        Диагнозы не найдены.
                     </div>
                 )}
 
