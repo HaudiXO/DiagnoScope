@@ -32,7 +32,7 @@ just api                    # uvicorn src.presentation.api.app:create_app --fact
 # pytest tests/unit/application/user/test_create.py -x
 
 # Lint and format
-just lint                   # ruff format src tests && ruff check src tests --fix
+just lint                   # ruff format src && ruff check src --fix
 
 # Create a migration
 alembic revision --autogenerate -m "description"
