@@ -1,11 +1,10 @@
-from sqlalchemy import BIGINT, INTEGER, String
+from sqlalchemy import BIGINT, String
 
 from src.domain.user.vo import (
     Bio,
     FirstName,
     LanguageCode,
     LastName,
-    ReferralCount,
     UserId,
     Username,
     UserRole,
@@ -49,13 +48,6 @@ class BioType(VOType):
     cache_ok = True
 
 
-class ReferralCountType(VOType):
-    impl = INTEGER
-    vo_class = ReferralCount
-    vo_raw = int
-    cache_ok = True
-
-
 class LanguageCodeType(VOType):
     impl = String(5)
     vo_class = LanguageCode
@@ -66,5 +58,14 @@ class LanguageCodeType(VOType):
 class UserRoleType(VOType):
     impl = String(10)
     vo_class = UserRole
+    vo_raw = str
+    cache_ok = True
+
+
+class PasswordType(VOType):
+    """Password hash type - stores bcrypt hash as string."""
+
+    impl = String(255)
+    vo_class = str  # Store as plain string hash
     vo_raw = str
     cache_ok = True

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import TIMESTAMP, ForeignKey, func
+from sqlalchemy import TIMESTAMP, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.domain.user.vo import (
@@ -8,7 +8,6 @@ from src.domain.user.vo import (
     FirstName,
     LanguageCode,
     LastName,
-    ReferralCount,
     UserId,
     Username,
     UserRole,
@@ -20,7 +19,7 @@ from .types.user import (
     FirstNameType,
     LanguageCodeType,
     LastNameType,
-    ReferralCountType,
+    PasswordType,
     UserIdType,
     UsernameType,
     UserRoleType,
@@ -47,12 +46,7 @@ class UserModel(BaseORMModel):
         TIMESTAMP(timezone=True), server_default=func.now()
     )
     role: Mapped[UserRole] = mapped_column(UserRoleType, nullable=False)
-    referred_by: Mapped[UserId | None] = mapped_column(
-        UserIdType, ForeignKey("users.id"), nullable=True
-    )
-    referral_count: Mapped[ReferralCount] = mapped_column(
-        ReferralCountType, nullable=False, server_default="0"
-    )
+    password_hash: Mapped[str | None] = mapped_column(PasswordType, nullable=True)
     language_code: Mapped[LanguageCode | None] = mapped_column(
         LanguageCodeType, server_default="en", nullable=True
     )

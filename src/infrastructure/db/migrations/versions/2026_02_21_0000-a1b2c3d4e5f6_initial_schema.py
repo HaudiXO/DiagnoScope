@@ -53,13 +53,6 @@ def upgrade() -> None:
             server_default=sa.func.now(),
             nullable=False,
         ),
-        sa.Column("referred_by", sa.BIGINT(), nullable=True),
-        sa.Column(
-            "referral_count",
-            sa.INTEGER(),
-            server_default="0",
-            nullable=False,
-        ),
         sa.Column(
             "language_code",
             sa.String(5),
@@ -67,15 +60,6 @@ def upgrade() -> None:
             nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index("ix_users_referred_by", "users", ["referred_by"])
-    op.create_foreign_key(
-        "fk_users_referred_by",
-        "users",
-        "users",
-        ["referred_by"],
-        ["id"],
-        ondelete="RESTRICT",
     )
 
 

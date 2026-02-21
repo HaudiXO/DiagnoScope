@@ -1,12 +1,12 @@
 from dataclasses import dataclass
 from datetime import datetime
 
+from .password import Password
 from .vo import (
     Bio,
     FirstName,
     LanguageCode,
     LastName,
-    ReferralCount,
     UserId,
     Username,
     UserRole,
@@ -24,8 +24,7 @@ class User:
     updated_at: datetime
     last_login_at: datetime
     role: UserRole
-    referred_by: UserId | None = None
-    referral_count: ReferralCount | None = None
+    password_hash: Password | None = None
     language_code: LanguageCode | None = None
 
     @property

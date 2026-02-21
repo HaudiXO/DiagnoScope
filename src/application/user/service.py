@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from src.domain.user import User, UserRepository
+from src.domain.user.password import Password
 from src.domain.user.vo import FirstName, LastName, UserId, Username, UserRole
 
 
@@ -12,6 +13,7 @@ class UpsertUserData:
     first_name: str
     last_name: str | None
     role: str
+    password: str | None = None
 
 
 class UserService:
@@ -35,7 +37,12 @@ class UserService:
             updated_at=now,
             last_login_at=now,
             role=existing_user.role if existing_user else UserRole(data.role),
+            password_hash=existing_user.password_hash if existing_user else None,
         )
+
+        # Set password if provided (for new users or password updates)
+        if data.password:
+            user.password_hash = Password(data.password)
 
         if existing_user is None:
             user = await self.user_repository.create_user(user)
