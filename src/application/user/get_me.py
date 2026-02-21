@@ -14,7 +14,7 @@ class GetUserProfileInputDTO:
 
 @dataclass
 class GetUserProfileOutputDTO:
-    id: int
+    id: str
     username: str | None
     first_name: str
     last_name: str | None

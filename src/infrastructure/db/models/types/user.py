@@ -1,4 +1,4 @@
-from sqlalchemy import BIGINT, String
+from sqlalchemy import String
 
 from src.domain.user.vo import (
     Bio,
@@ -14,9 +14,9 @@ from .base import VOType
 
 
 class UserIdType(VOType):
-    impl = BIGINT
+    impl = String(36)
     vo_class = UserId
-    vo_raw = int
+    vo_raw = str
     cache_ok = True
 
 

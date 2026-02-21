@@ -32,7 +32,7 @@ class UserMapper:
             password_hash_str = user.password_hash.hash
 
         return UserModel(
-            id=user.id,
+            id=user.id.value if user.id is not None else None,
             first_name=user.first_name,
             last_name=user.last_name,
             username=user.username,

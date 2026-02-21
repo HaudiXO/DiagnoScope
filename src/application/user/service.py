@@ -8,7 +8,7 @@ from src.domain.user.vo import FirstName, LastName, UserId, Username, UserRole
 
 @dataclass
 class UpsertUserData:
-    id: int
+    id: str | None
     username: str | None
     first_name: str
     last_name: str | None
@@ -21,11 +21,19 @@ class UserService:
         self.user_repository = user_repository
 
     async def upsert_user(self, data: UpsertUserData) -> User:
-        user_id = UserId(data.id)
-
-        existing_user = await self.user_repository.get_user(user_id)
-
         now = datetime.now(UTC)
+
+        existing_user = None
+        if data.id is not None:
+            user_id = UserId(data.id)
+            existing_user = await self.user_repository.get_user(user_id)
+
+        if existing_user:
+            user_id = existing_user.id
+        elif data.id is not None:
+            user_id = UserId(data.id)
+        else:
+            user_id = UserId.generate()
 
         user = User(
             id=user_id,
@@ -40,7 +48,6 @@ class UserService:
             password_hash=existing_user.password_hash if existing_user else None,
         )
 
-        # Set password if provided (for new users or password updates)
         if data.password:
             user.password_hash = Password(data.password)
 

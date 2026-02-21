@@ -8,7 +8,7 @@ from litestar.openapi.config import OpenAPIConfig
 from litestar.openapi.spec import Components, SecurityScheme
 
 from src.application.auth.exceptions import InvalidInitDataError
-from src.application.common.exceptions import ValidationError
+from src.application.common.exceptions import ApplicationError, ValidationError
 from src.application.interfaces.auth import AuthService
 from src.infrastructure.auth import AuthServiceImpl
 from src.infrastructure.config import Config, load_config
@@ -17,6 +17,7 @@ from src.infrastructure.di.auth import AuthProvider
 from src.infrastructure.di.db import DBProvider
 
 from .exception import (
+    application_error_handler,
     custom_exception_handler,
     exception_logs_handler,
     litestar_error_handler,
@@ -55,6 +56,7 @@ def prepare_app(auth_service: AuthService) -> Litestar:
             ClientException: litestar_error_handler,
             InvalidInitDataError: exception_logs_handler,
             ValidationError: validation_error_handler,
+            ApplicationError: application_error_handler,
         },
         middleware=[
             DefineMiddleware(

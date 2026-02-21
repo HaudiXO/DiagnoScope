@@ -4,7 +4,7 @@ from typing import Any
 from litestar import Request, Response
 from litestar.exceptions import ClientException
 
-from src.application.common.exceptions import ValidationError
+from src.application.common.exceptions import ApplicationError, ValidationError
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +25,17 @@ def litestar_error_handler(
     return Response(
         {"detail": exc.detail, "extra": exc.extra, "status_code": exc.status_code},
         status_code=exc.status_code,
+    )
+
+
+def application_error_handler(
+    _: Request[Any, Any, Any], exc: ApplicationError
+) -> Response[Any]:
+    """Handle all ApplicationError subclasses."""
+    logger.info(exc)
+    return Response(
+        {"detail": exc.message, "status_code": exc.status_code},
+        status_code=exc.status_code.value,
     )
 
 

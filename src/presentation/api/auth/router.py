@@ -13,7 +13,7 @@ from src.presentation.api.base.schemas import BaseResponseDTO
 class LoginRequest:
     """Login request schema."""
 
-    user_id: int
+    username: str
     password: str
 
 
@@ -50,7 +50,7 @@ async def login(
     """Login and get access token.
 
     Args:
-        data: Login credentials (user_id)
+        data: Login credentials (username)
         interactor: The login interactor
 
     Returns:
@@ -61,7 +61,7 @@ async def login(
     """
     result = await interactor(
         data=LoginInputDTO(
-            user_id=data.user_id,
+            username=data.username,
             password=data.password,
         )
     )

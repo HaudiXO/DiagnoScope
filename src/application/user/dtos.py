@@ -13,7 +13,7 @@ class UserRoleDTO(StrEnum):
 
 @dataclass
 class CreateUserInputDTO:
-    id: int
+    id: str
     username: str | None
     first_name: str
     last_name: str | None
@@ -22,7 +22,7 @@ class CreateUserInputDTO:
 
 @dataclass
 class CreateUserOutputDTO:
-    id: int
+    id: str
     username: str | None
     first_name: str
     last_name: str | None

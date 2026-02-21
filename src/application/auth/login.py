@@ -4,14 +4,14 @@ from src.application.common.exceptions import ValidationError
 from src.application.common.interactor import Interactor
 from src.application.interfaces.auth import AuthService
 from src.domain.user import UserRepository
-from src.domain.user.vo import UserId
+from src.domain.user.vo import Username
 
 
 @dataclass
 class LoginInputDTO:
     """Input DTO for user login."""
 
-    user_id: int
+    username: str
     password: str
 
 
@@ -38,7 +38,7 @@ class LoginInteractor(Interactor[LoginInputDTO, LoginOutputDTO]):
         """Authenticate user and return access token.
 
         Args:
-            data: Login credentials (user_id and password)
+            data: Login credentials (username and password)
 
         Returns:
             Login output with access token
@@ -47,7 +47,7 @@ class LoginInteractor(Interactor[LoginInputDTO, LoginOutputDTO]):
             ValidationError: If user not found or password invalid
         """
         # Verify user exists
-        user = await self._user_repository.get_user(UserId(data.user_id))
+        user = await self._user_repository.get_user(Username(data.username))
         if user is None:
             raise ValidationError("Invalid credentials")
 
@@ -59,7 +59,7 @@ class LoginInteractor(Interactor[LoginInputDTO, LoginOutputDTO]):
             raise ValidationError("Invalid credentials")
 
         # Create access token
-        access_token = self._auth_service.create_access_token(data.user_id)
+        access_token = self._auth_service.create_access_token(user.id)
 
         return LoginOutputDTO(
             access_token=access_token,

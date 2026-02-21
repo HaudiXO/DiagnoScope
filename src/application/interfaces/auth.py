@@ -1,13 +1,12 @@
 from abc import abstractmethod
 from typing import Protocol
 
+from src.domain.user.vo import UserId
+
 
 class AuthService(Protocol):
     @abstractmethod
-    def validate_init_data(self, init_data: str) -> None: ...
+    def create_access_token(self, user_id: UserId) -> str: ...
 
     @abstractmethod
-    def create_access_token(self, user_id: int) -> str: ...
-
-    @abstractmethod
-    def validate_access_token(self, token: str) -> int: ...
+    def validate_access_token(self, token: str) -> UserId: ...

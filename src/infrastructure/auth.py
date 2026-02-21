@@ -5,6 +5,7 @@ from jose.jwt import decode, encode
 
 from src.application.common.exceptions import ValidationError
 from src.application.interfaces.auth import AuthService
+from src.domain.user.vo import UserId
 from src.infrastructure.config import Config
 
 
@@ -12,11 +13,7 @@ class AuthServiceImpl(AuthService):
     def __init__(self, config: Config) -> None:
         self.config = config
 
-    def validate_init_data(self, init_data: str) -> None:
-        """Validate initialization data (placeholder for protocol compatibility)."""
-        return None
-
-    def create_access_token(self, user_id: int) -> str:
+    def create_access_token(self, user_id: UserId) -> str:
         to_encode = {
             "sub": str(user_id),
             "exp": datetime.now(UTC)
@@ -30,7 +27,7 @@ class AuthServiceImpl(AuthService):
         )
         return encoded_jwt
 
-    def validate_access_token(self, token: str) -> int:
+    def validate_access_token(self, token: str) -> UserId:
         """Validate JWT token and return user_id if valid."""
         try:
             payload = decode(
@@ -42,7 +39,7 @@ class AuthServiceImpl(AuthService):
             if user_id_str is None:
                 raise ValidationError("Token missing subject")
 
-            return int(user_id_str)
+            return UserId(user_id_str)
         except ExpiredSignatureError as err:
             raise ValidationError("Token has expired") from err
         except JWTError as err:

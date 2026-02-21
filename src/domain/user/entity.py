@@ -18,7 +18,7 @@ class User:
     id: UserId
     first_name: FirstName
     last_name: LastName | None
-    username: Username | None
+    username: Username
     bio: Bio | None
     created_at: datetime
     updated_at: datetime
@@ -33,7 +33,7 @@ class User:
 
     def __str__(self) -> str:
         return (
-            f"User(id={self.id}, username={self.username}, "
+            f"User(id={self.id.value}, username={self.username}, "
             f"first_name={self.first_name}, last_name={self.last_name}, "
             f"language_code={self.language_code}, is_new={self.is_new})"
         )

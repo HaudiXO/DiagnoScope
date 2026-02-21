@@ -7,12 +7,10 @@ from src.application.user.dtos import UserRoleDTO
 class AdminCreateUserInputDTO:
     """Input DTO for admin creating a user."""
 
-    id: int
     username: str | None
     first_name: str
     last_name: str | None
     role: UserRoleDTO
-    password: str | None = None
     password: str | None = None
 
 
@@ -20,7 +18,7 @@ class AdminCreateUserInputDTO:
 class AdminCreateUserOutputDTO:
     """Output DTO for admin creating a user."""
 
-    id: int
+    id: str
     username: str | None
     first_name: str
     last_name: str | None

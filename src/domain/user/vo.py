@@ -1,7 +1,7 @@
 """User domain value objects."""
 
-from src.domain.common.vo.integer import PositiveInteger
 from src.domain.common.vo.string import NonEmptyString
+from src.domain.common.vo.uuid import UUIDValueObject
 
 
 class UserRole:
@@ -36,8 +36,8 @@ class UserRole:
         return f"UserRole({self._value!r})"
 
 
-class UserId(PositiveInteger):
-    """User ID value object."""
+class UserId(UUIDValueObject):
+    """User ID value object (UUID)."""
 
     pass
 

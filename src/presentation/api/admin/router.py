@@ -3,13 +3,14 @@ import logging
 
 from dishka.integrations.litestar import FromDishka, inject
 from litestar import Controller, Router, post
-from litestar.exceptions import HTTPException
-from litestar.status_codes import HTTP_201_CREATED, HTTP_403_FORBIDDEN
+from litestar.status_codes import HTTP_201_CREATED
 
 from src.application.admin import (
+    AdminAccessRequiredError,
     AdminAuthorizationService,
     AdminCreateUserInputDTO,
     AdminCreateUserInteractor,
+    InvalidRoleError,
 )
 from src.application.user.dtos import UserRoleDTO
 from src.domain.user.vo import UserId
@@ -53,29 +54,25 @@ class AdminUserController(Controller):
             The created user data
 
         Raises:
-            HTTPException: 403 if user is not an admin
+            AdminAccessRequiredError: If user is not an admin
+            InvalidRoleError: If the role is invalid
         """
         # Verify the requesting user is an admin
         is_admin = await auth_service.is_admin(user_id)
         if not is_admin:
-            raise HTTPException(
-                status_code=HTTP_403_FORBIDDEN,
-                detail="Admin access required",
-            )
+            raise AdminAccessRequiredError
 
         # Validate role
         try:
             role = UserRoleDTO(data.role)
         except ValueError:
-            raise HTTPException(
-                status_code=400,
-                detail="Invalid role. Must be one of: doctor, admin",
+            raise InvalidRoleError(
+                allowed_roles=list(UserRoleDTO.__members__.keys())
             ) from None
 
         # Create the user
         result = await interactor(
             data=AdminCreateUserInputDTO(
-                id=data.id,
                 username=data.username,
                 first_name=data.first_name,
                 last_name=data.last_name,
