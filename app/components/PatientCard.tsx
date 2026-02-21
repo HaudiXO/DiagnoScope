@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import type { Patient } from '../lib/patients';
 import type { HistoryEntry } from '../lib/history';
+import Card from './ui/Card';
+import Badge from './ui/Badge';
+import Button from './ui/Button';
 
 interface Props {
     patient: Patient;
@@ -27,47 +30,54 @@ export default function PatientCard({ patient, lastRun }: Props) {
         : rawSymptoms;
 
     return (
-        <div className="flex flex-col gap-3 p-4 border border-gray-200 dark:border-gray-800 rounded-lg bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-shadow">
+        <Card className="flex flex-col gap-3 hover:shadow-[var(--shadow-md)] transition-shadow">
             {/* Patient header */}
             <div className="flex items-start justify-between gap-2">
                 <div>
                     <p className="font-semibold text-base leading-tight">{patient.name}</p>
                     {patient.age != null && (
-                        <p className="text-sm text-gray-500 dark:text-gray-400">Age {patient.age}</p>
+                        <p className="text-sm mt-0.5" style={{ color: 'var(--color-muted)' }}>
+                            Age {patient.age}
+                        </p>
                     )}
                 </div>
-                {topCode && (
-                    <span className="shrink-0 px-2 py-0.5 rounded text-xs font-mono font-medium bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800">
-                        {topCode}
-                    </span>
-                )}
+                {topCode && <Badge variant="blue">{topCode}</Badge>}
             </div>
 
             {/* Last run summary */}
             <div className="flex-1 min-h-[2.5rem] text-sm">
                 {lastRun ? (
                     <div className="space-y-0.5">
-                        <p className="text-xs uppercase tracking-wide font-medium text-gray-400 dark:text-gray-500">
+                        <p
+                            className="text-xs uppercase tracking-wide font-medium"
+                            style={{ color: 'var(--color-muted)' }}
+                        >
                             Last assessment · {formatDate(lastRun.createdAt)}
                         </p>
                         {symptomsPreview && (
-                            <p className="text-gray-500 dark:text-gray-400 italic truncate">
+                            <p className="italic truncate" style={{ color: 'var(--color-muted)' }}>
                                 &ldquo;{symptomsPreview}&rdquo;
                             </p>
                         )}
                     </div>
                 ) : (
-                    <p className="text-xs italic text-gray-400 dark:text-gray-500">No assessments yet.</p>
+                    <p className="text-xs italic" style={{ color: 'var(--color-muted)' }}>
+                        No assessments yet.
+                    </p>
                 )}
             </div>
 
-            {/* Action */}
+            {/* Action — styled as Button but rendered as Link */}
             <Link
                 href={`/patient/${patient.id}`}
-                className="inline-flex items-center justify-center px-3 py-1.5 text-sm font-medium rounded-md bg-blue-600 hover:bg-blue-700 text-white transition-colors"
+                className={[
+                    'inline-flex items-center justify-center text-sm font-medium transition-colors',
+                    'rounded-[var(--radius-md)] px-3 py-1.5 focus-ring',
+                    'bg-[var(--color-primary)] text-[var(--color-primary-fg)] hover:bg-[var(--color-primary-hover)]',
+                ].join(' ')}
             >
                 Open
             </Link>
-        </div>
+        </Card>
     );
 }

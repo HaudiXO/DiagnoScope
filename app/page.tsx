@@ -2,6 +2,10 @@
 
 import { useEffect, useState } from 'react';
 import PatientCard from './components/PatientCard';
+import Button from './components/ui/Button';
+import Input from './components/ui/Input';
+import Card from './components/ui/Card';
+import { PlusIcon } from './components/ui/Icon';
 import {
   readPatients,
   addPatient,
@@ -50,62 +54,63 @@ export default function PatientsPage() {
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Patients</h1>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
             {patients.length} patient{patients.length !== 1 ? 's' : ''} on file
           </p>
         </div>
         <div className="flex gap-2 flex-wrap">
-          <button
+          <Button
+            variant="secondary"
             onClick={() => setShowForm((v) => !v)}
-            className="px-3 py-2 text-sm rounded-md border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-medium"
           >
-            {showForm ? 'Cancel' : '+ Add patient'}
-          </button>
-          <button
-            onClick={handleReset}
-            className="px-3 py-2 text-sm rounded-md border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors font-medium"
-          >
+            {showForm ? (
+              'Cancel'
+            ) : (
+              <>
+                <PlusIcon size={15} className="mr-1.5" />
+                Add patient
+              </>
+            )}
+          </Button>
+          <Button variant="danger" onClick={handleReset}>
             Reset demo data
-          </button>
+          </Button>
         </div>
       </header>
 
       {/* Inline add-patient form */}
       {showForm && (
-        <form
-          onSubmit={handleAdd}
-          className="p-4 border border-gray-200 dark:border-gray-800 rounded-lg space-y-3 bg-white dark:bg-gray-900"
-        >
-          <div className="flex gap-3 flex-wrap">
-            <input
+        <Card>
+          <form onSubmit={handleAdd} className="flex gap-3 flex-wrap">
+            <Input
               required
               placeholder="Full name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="flex-1 min-w-[160px] px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 outline-none"
+              className="flex-1 min-w-[160px]"
             />
-            <input
+            <Input
               type="number"
               placeholder="Age (optional)"
               min={0}
               max={130}
               value={age}
               onChange={(e) => setAge(e.target.value)}
-              className="w-32 px-3 py-2 text-sm border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 outline-none"
+              className="w-32"
             />
-            <button
-              type="submit"
-              className="px-4 py-2 text-sm bg-blue-600 hover:bg-blue-700 text-white rounded-md font-medium transition-colors"
-            >
+            <Button type="submit" variant="primary">
               Add
-            </button>
-          </div>
-        </form>
+            </Button>
+          </form>
+        </Card>
       )}
 
       {/* Patient grid */}
       {patients.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-lg text-gray-500">
+        <div
+          className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed"
+          style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+        >
           <p className="text-lg font-medium">No patients yet.</p>
           <p className="text-sm mt-1">Add a patient or click &ldquo;Reset demo data&rdquo; to seed examples.</p>
         </div>
