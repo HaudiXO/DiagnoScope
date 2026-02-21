@@ -25,25 +25,31 @@ function isUrgent(item: DiagnosisItem): boolean {
 
 interface Props {
     diagnoses: DiagnosisItem[];
+    traceId?: string;
 }
 
-export default function SafetyBanner({ diagnoses }: Props) {
+export default function SafetyBanner({ diagnoses, traceId }: Props) {
     const urgent = diagnoses.some(isUrgent);
     if (!urgent) return null;
 
     return (
         <div
             role="alert"
-            className="flex gap-3 items-start p-4 rounded-lg border border-red-400 bg-red-50 dark:bg-red-900/20 dark:border-red-700 text-red-800 dark:text-red-300 print:border-red-600 print:bg-red-50"
+            className="flex gap-3 items-start p-4 rounded-lg border border-amber-400 bg-amber-50 dark:bg-amber-900/20 dark:border-amber-700 text-amber-900 dark:text-amber-200 print:border-amber-600 print:bg-amber-50"
         >
             <span className="text-xl" aria-hidden>⚠️</span>
-            <div>
-                <p className="font-semibold">Clinical Safety Notice</p>
-                <p className="text-sm mt-0.5">
+            <div className="flex-1">
+                <p className="font-semibold text-amber-900 dark:text-amber-100">Clinical Safety Notice</p>
+                <p className="text-sm mt-0.5 text-amber-800 dark:text-amber-200/90">
                     One or more diagnoses include warnings or urgency signals. Review all
                     warnings carefully and consult a qualified clinician before acting on
                     these results.
                 </p>
+                {traceId && (
+                    <p className="text-xs mt-2 font-mono text-amber-700 dark:text-amber-400/80">
+                        Trace ID: {traceId}
+                    </p>
+                )}
             </div>
         </div>
     );
