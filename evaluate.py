@@ -1,10 +1,10 @@
 import argparse
 import asyncio
+from dataclasses import dataclass
 import json
+from pathlib import Path
 import statistics
 import time
-from dataclasses import dataclass
-from pathlib import Path
 
 import httpx
 from rich.console import Console
@@ -42,7 +42,7 @@ async def evaluate_single(
 ) -> EvaluationResult:
     """Evaluate a single protocol against the endpoint."""
     async with semaphore:
-        with open(json_file, "r") as f:
+        with open(json_file) as f:
             data = json.load(f)
 
         protocol_id = data["protocol_id"]
