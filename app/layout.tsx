@@ -62,8 +62,7 @@ function LangToggle() {
   );
 }
 
-function Footer() {
-  const { t } = useI18n();
+function useAppMode() {
   const [mode, setMode] = useState<string>(USE_MOCK ? 'demo' : 'live');
 
   useEffect(() => {
@@ -86,6 +85,13 @@ function Footer() {
     return () => window.removeEventListener('medassist-mode', handler);
   }, []);
 
+  return mode;
+}
+
+function Footer() {
+  const { t } = useI18n();
+  const mode = useAppMode();
+
   let displayMode = mode;
   if (mode === 'demo') displayMode = t.modeDemo || 'demo';
   else if (mode === 'fallback') displayMode = t.modeFallback || 'fallback';
@@ -105,6 +111,18 @@ function Footer() {
 
 function Header() {
   const { t } = useI18n();
+  const mode = useAppMode();
+
+  let displayMode = mode;
+  let BadgeStyle = 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
+  if (mode === 'demo') {
+    displayMode = t.modeDemo || 'Демо';
+    BadgeStyle = 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300';
+  } else if (mode === 'fallback') {
+    displayMode = t.modeFallback || 'Fallback';
+    BadgeStyle = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
+  }
+
   return (
     <header
       style={{
@@ -117,9 +135,14 @@ function Header() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="font-bold text-base tracking-tight hover:text-[var(--color-primary)] transition-colors"
+            className="flex items-center gap-2 font-bold text-base tracking-tight hover:text-[var(--color-primary)] transition-colors"
           >
             🩺 MedAssist
+            {mode !== 'live' && (
+              <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm ${BadgeStyle}`}>
+                {displayMode}
+              </span>
+            )}
           </Link>
           <nav className="flex gap-4">
             <Link

@@ -71,7 +71,7 @@ export const ru = {
     hideRaw: 'Скрыть сырой ответ',
     noData: 'Для этого запуска нет данных диагностики.',
 
-    modeDemo: 'Демо режим',
-    modeFallback: 'Режим резервного ответа',
-    modeLive: 'Боевой режим',
+    modeDemo: 'Демо',
+    modeFallback: 'Fallback',
+    modeLive: 'Live',
 };
