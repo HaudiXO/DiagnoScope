@@ -40,7 +40,9 @@ def prepare_app(auth_service: AuthService) -> Litestar:
         },
         middleware=[
             DefineMiddleware(
-                AuthMiddleware, exclude=["auth", "health"], auth_service=auth_service
+                AuthMiddleware,
+                exclude=["auth", "health", "schema"],
+                auth_service=auth_service,
             )
         ],
         dependencies={

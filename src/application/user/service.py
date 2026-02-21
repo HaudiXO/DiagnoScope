@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 
 from src.domain.user import User, UserRepository
-from src.domain.user.vo import FirstName, LastName, UserId, Username
+from src.domain.user.vo import FirstName, LastName, UserId, Username, UserRole
 
 
 @dataclass
@@ -11,6 +11,7 @@ class UpsertUserData:
     username: str | None
     first_name: str
     last_name: str | None
+    role: str
 
 
 class UserService:
@@ -33,6 +34,7 @@ class UserService:
             created_at=existing_user.created_at if existing_user else now,
             updated_at=now,
             last_login_at=now,
+            role=existing_user.role if existing_user else UserRole(data.role),
         )
 
         if existing_user is None:

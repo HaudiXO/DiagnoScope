@@ -11,9 +11,8 @@ Docker:
 Runs on http://127.0.0.1:8000/diagnose
 """
 
-import random
 from contextlib import asynccontextmanager
-from typing import Optional
+import random
 
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -81,7 +80,7 @@ ICD_CODES = [
 
 
 class DiagnoseRequest(BaseModel):
-    symptoms: Optional[str] = ""
+    symptoms: str | None = ""
 
 
 class Diagnosis(BaseModel):

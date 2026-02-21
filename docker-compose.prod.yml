@@ -1,4 +1,4 @@
-name: "production"
+name: "diagnoscope-prod"
 
 services:
   postgres:

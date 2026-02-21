@@ -6,7 +6,7 @@ postgres:
   db: "ask_app"
 
 auth:
-  secret_key: "secret"
+  secret_key: "secret"  # retrieve from `openssl rand -hex 32`
   algorithm: "HS256"
   access_token_expire_minutes: 30
 

@@ -1,4 +1,4 @@
-name: "main"
+name: "diagnoscope-local"
 
 services:
   postgres:

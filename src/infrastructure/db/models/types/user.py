@@ -8,6 +8,7 @@ from src.domain.user.vo import (
     ReferralCount,
     UserId,
     Username,
+    UserRole,
 )
 
 from .base import VOType
@@ -58,5 +59,12 @@ class ReferralCountType(VOType):
 class LanguageCodeType(VOType):
     impl = String(5)
     vo_class = LanguageCode
+    vo_raw = str
+    cache_ok = True
+
+
+class UserRoleType(VOType):
+    impl = String(10)
+    vo_class = UserRole
     vo_raw = str
     cache_ok = True

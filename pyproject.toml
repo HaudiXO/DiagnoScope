@@ -8,7 +8,6 @@ dependencies = [
     "httpx>=0.27.0",
     "rich>=13.7.0",
     "aiohttp>=3.9.0",
-    "fastapi>=0.115.0",
     "uvicorn>=0.32.0",
     "ipykernel>=7.2.0",
     "alembic>=1.16.2",

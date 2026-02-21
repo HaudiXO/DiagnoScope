@@ -11,6 +11,7 @@ from src.domain.user.vo import (
     ReferralCount,
     UserId,
     Username,
+    UserRole,
 )
 
 from .base import BaseORMModel
@@ -22,6 +23,7 @@ from .types.user import (
     ReferralCountType,
     UserIdType,
     UsernameType,
+    UserRoleType,
 )
 
 
@@ -44,6 +46,7 @@ class UserModel(BaseORMModel):
     last_login_at: Mapped[datetime] = mapped_column(
         TIMESTAMP(timezone=True), server_default=func.now()
     )
+    role: Mapped[UserRole] = mapped_column(UserRoleType, nullable=False)
     referred_by: Mapped[UserId | None] = mapped_column(
         UserIdType, ForeignKey("users.id"), nullable=True
     )

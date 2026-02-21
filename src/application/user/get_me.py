@@ -1,10 +1,9 @@
 from dataclasses import dataclass
 
 from src.application.common.interactor import Interactor
+from src.application.user.dtos import UserRoleDTO
 from src.application.user.exceptions import UserNotFoundError
-from src.domain.user import (
-    UserRepository,
-)
+from src.domain.user import UserRepository
 from src.domain.user.vo import UserId
 
 
@@ -19,6 +18,7 @@ class GetUserProfileOutputDTO:
     username: str | None
     first_name: str
     last_name: str | None
+    role: UserRoleDTO
 
 
 class GetUserProfileInteractor(
@@ -41,4 +41,5 @@ class GetUserProfileInteractor(
             username=user.username.value if user.username else None,
             first_name=user.first_name.value,
             last_name=user.last_name.value if user.last_name else None,
+            role=UserRoleDTO(user.role.value),
         )

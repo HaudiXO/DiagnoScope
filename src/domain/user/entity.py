@@ -1,7 +1,16 @@
 from dataclasses import dataclass
 from datetime import datetime
 
-from .vo import Bio, FirstName, LanguageCode, LastName, ReferralCount, UserId, Username
+from .vo import (
+    Bio,
+    FirstName,
+    LanguageCode,
+    LastName,
+    ReferralCount,
+    UserId,
+    Username,
+    UserRole,
+)
 
 
 @dataclass
@@ -14,6 +23,7 @@ class User:
     created_at: datetime
     updated_at: datetime
     last_login_at: datetime
+    role: UserRole
     referred_by: UserId | None = None
     referral_count: ReferralCount | None = None
     language_code: LanguageCode | None = None
