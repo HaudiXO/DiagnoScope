@@ -5,10 +5,14 @@
             "chest",
             "heart",
             "palpitation",
-            "cardiac"
+            "cardiac",
+            "боль",
+            "грудь",
+            "сердце",
+            "пот"
         ],
         "request": {
-            "symptoms": "Chest pain radiating to left arm with shortness of breath and sweating",
+            "symptoms": "Боль в груди, отдающая в левую руку, с одышкой и потливостью",
             "top_n": 3
         },
         "response": {
@@ -17,23 +21,23 @@
                 {
                     "rank": 1,
                     "icd10_code": "I21.9",
-                    "description": "Acute myocardial infarction, unspecified",
+                    "description": "Острый инфаркт миокарда неуточненный",
                     "confidence": 0.82,
-                    "reasoning": "Chest pain radiating to left arm with diaphoresis is classic for STEMI/NSTEMI."
+                    "reasoning": "Боль в груди, иррадиирующая в левую руку, сопровождающаяся потливостью, является классическим симптомом STEMI/NSTEMI."
                 },
                 {
                     "rank": 2,
                     "icd10_code": "I20.9",
-                    "description": "Angina pectoris, unspecified",
+                    "description": "Стенокардия неуточненная",
                     "confidence": 0.61,
-                    "reasoning": "Stable or unstable angina presents similarly; must be ruled out."
+                    "reasoning": "Стабильная или нестабильная стенокардия имеет схожую картину; необходимо исключить."
                 },
                 {
                     "rank": 3,
                     "icd10_code": "R07.9",
-                    "description": "Chest pain, unspecified",
+                    "description": "Боль в груди неуточненная",
                     "confidence": 0.30,
-                    "reasoning": "Non-specific chest pain until further diagnostics confirm aetiology."
+                    "reasoning": "Неспецифическая боль в груди до проведения дальнейшей диагностики для уточнения этиологии."
                 }
             ]
         }
@@ -46,10 +50,14 @@
             "lung",
             "wheez",
             "respir",
-            "asthma"
+            "asthma",
+            "кашель",
+            "дыхан",
+            "хрип",
+            "астма"
         ],
         "request": {
-            "symptoms": "Persistent dry cough, wheezing, shortness of breath worsening at night",
+            "symptoms": "Постоянный сухой кашель, хрипы, одышка, усиливающаяся ночью",
             "top_n": 3
         },
         "response": {
@@ -58,23 +66,23 @@
                 {
                     "rank": 1,
                     "icd10_code": "J45.9",
-                    "description": "Asthma, unspecified",
+                    "description": "Астма неуточненная",
                     "confidence": 0.78,
-                    "reasoning": "Nocturnal wheezing and dry cough are hallmarks of bronchial asthma."
+                    "reasoning": "Ночные хрипы и сухой кашель являются характерными признаками бронхиальной астмы."
                 },
                 {
                     "rank": 2,
                     "icd10_code": "J06.9",
-                    "description": "Acute upper respiratory infection, unspecified",
+                    "description": "Острая инфекция верхних дыхательных путей неуточненная",
                     "confidence": 0.52,
-                    "reasoning": "Viral URTI can cause persistent cough and mild dyspnoea."
+                    "reasoning": "Вирусная инфекция ВДП может вызывать стойкий кашель и легкую одышку."
                 },
                 {
                     "rank": 3,
                     "icd10_code": "J42",
-                    "description": "Unspecified chronic bronchitis",
+                    "description": "Неуточненный хронический бронхит",
                     "confidence": 0.35,
-                    "reasoning": "Chronic productive or dry cough lasting > 3 months suggests chronic bronchitis."
+                    "reasoning": "Хронический кашель (влажный или сухой) длительностью более 3 месяцев указывает на хронический бронхит."
                 }
             ]
         }
@@ -87,10 +95,14 @@
             "dizz",
             "neuro",
             "seizure",
-            "vision"
+            "vision",
+            "голов",
+            "мигрен",
+            "головокруж",
+            "аур"
         ],
         "request": {
-            "symptoms": "Severe unilateral headache with nausea, photophobia, and visual aura",
+            "symptoms": "Сильная односторонняя головная боль с тошнотой, светобоязнью и визуальной аурой",
             "top_n": 3
         },
         "response": {
@@ -99,23 +111,23 @@
                 {
                     "rank": 1,
                     "icd10_code": "G43.1",
-                    "description": "Migraine with aura",
+                    "description": "Мигрень с аурой",
                     "confidence": 0.87,
-                    "reasoning": "Unilateral throbbing headache preceded by visual aura meets ICHD-3 criteria."
+                    "reasoning": "Односторонняя пульсирующая головная боль, которой предшествует визуальная аура, соответствует критериям ICHD-3."
                 },
                 {
                     "rank": 2,
                     "icd10_code": "G44.309",
-                    "description": "Post-traumatic headache, unspecified, not intractable",
+                    "description": "Посттравматическая головная боль неуточненная, некупируемая",
                     "confidence": 0.40,
-                    "reasoning": "Considered if recent head trauma is present."
+                    "reasoning": "Рассматривается при наличии недавней травмы головы."
                 },
                 {
                     "rank": 3,
                     "icd10_code": "R51",
-                    "description": "Headache",
+                    "description": "Головная боль",
                     "confidence": 0.22,
-                    "reasoning": "Non-specific headache pending further evaluation."
+                    "reasoning": "Неспецифическая головная боль в ожидании дальнейшего обследования."
                 }
             ]
         }
@@ -129,10 +141,15 @@
             "vomit",
             "diarrhea",
             "stomach",
-            "bowel"
+            "bowel",
+            "живот",
+            "тошнот",
+            "рвот",
+            "диаре",
+            "понос"
         ],
         "request": {
-            "symptoms": "Crampy lower abdominal pain, diarrhoea, nausea, and low-grade fever",
+            "symptoms": "Схваткообразная боль внизу живота, диарея, тошнота и субфебрильная температура",
             "top_n": 3
         },
         "response": {
@@ -141,23 +158,23 @@
                 {
                     "rank": 1,
                     "icd10_code": "K52.9",
-                    "description": "Noninfective gastroenteritis and colitis, unspecified",
+                    "description": "Неинфекционный гастроэнтерит и колит неуточненный",
                     "confidence": 0.74,
-                    "reasoning": "Crampy pain with diarrhoea and low fever fits acute gastroenteritis."
+                    "reasoning": "Схваткообразная боль с диареей и невысокой температурой соответствует острому гастроэнтериту."
                 },
                 {
                     "rank": 2,
                     "icd10_code": "A09",
-                    "description": "Other and unspecified gastroenteritis and colitis of infectious origin",
+                    "description": "Другой и неуточненный гастроэнтерит и колит инфекционного происхождения",
                     "confidence": 0.65,
-                    "reasoning": "Infectious aetiology must be considered when fever is present."
+                    "reasoning": "При наличии температуры необходимо рассматривать инфекционную этиологию."
                 },
                 {
                     "rank": 3,
                     "icd10_code": "K58.0",
-                    "description": "Irritable bowel syndrome with diarrhoea",
+                    "description": "Синдром раздраженного кишечника с диареей",
                     "confidence": 0.38,
-                    "reasoning": "IBS-D can present with recurrent abdominal pain and loose stools."
+                    "reasoning": "СРК-Д может проявляться рецидивирующей болью в животе и жидким стулом."
                 }
             ]
         }

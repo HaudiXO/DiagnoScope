@@ -25,11 +25,11 @@ export interface Patient {
 // ── Seed data (deterministic IDs) ──────────────────────────────────────────
 
 const SEED_PATIENTS: Patient[] = [
-    { id: 'pt-001', name: 'Alice Moreau', age: 34, createdAt: '2026-01-15T08:00:00.000Z' },
-    { id: 'pt-002', name: 'Bruno Santos', age: 52, createdAt: '2026-01-20T09:30:00.000Z' },
-    { id: 'pt-003', name: 'Clara Hoffmann', age: 28, createdAt: '2026-02-01T11:00:00.000Z' },
-    { id: 'pt-004', name: 'David Osei', age: 45, createdAt: '2026-02-10T14:00:00.000Z' },
-    { id: 'pt-005', name: 'Elena Kozlov', age: 61, createdAt: '2026-02-18T16:00:00.000Z' },
+    { id: 'pt-001', name: 'Алиса Морозова', age: 34, createdAt: '2026-01-15T08:00:00.000Z' },
+    { id: 'pt-002', name: 'Борис Смирнов', age: 52, createdAt: '2026-01-20T09:30:00.000Z' },
+    { id: 'pt-003', name: 'Клара Гофман', age: 28, createdAt: '2026-02-01T11:00:00.000Z' },
+    { id: 'pt-004', name: 'Дмитрий Осин', age: 45, createdAt: '2026-02-10T14:00:00.000Z' },
+    { id: 'pt-005', name: 'Елена Козлова', age: 61, createdAt: '2026-02-18T16:00:00.000Z' },
 ];
 
 // ── Patient store helpers ──────────────────────────────────────────────────
