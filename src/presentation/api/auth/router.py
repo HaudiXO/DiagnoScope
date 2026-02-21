@@ -1,11 +1,10 @@
 from dataclasses import dataclass
-from typing import Any
 
 from dishka.integrations.litestar import FromDishka, inject
 from litestar import Router, post
 from litestar.status_codes import HTTP_200_OK
 
-from src.application.auth.login import LoginInputDTO, LoginInteractor, LoginOutputDTO
+from src.application.auth.login import LoginInputDTO, LoginInteractor
 from src.presentation.api.base.schemas import BaseResponseDTO
 
 
@@ -27,14 +26,6 @@ class LoginResponseData:
 
 class LoginResponseSchema(BaseResponseDTO[LoginResponseData]):
     """Login response schema."""
-
-    @classmethod
-    def from_dto(cls, dto: LoginOutputDTO) -> dict[str, Any]:
-        """Convert DTO to response data."""
-        return {
-            "access_token": dto.access_token,
-            "token_type": dto.token_type,
-        }
 
 
 @post(
