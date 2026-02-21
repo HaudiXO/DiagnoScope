@@ -85,9 +85,9 @@ function getFallbackFixture(symptoms: string): DiagnoseResponseWithMode {
                 {
                     rank: 1,
                     icd10_code: 'Z03.89',
-                    description: 'Encounter for observation for other suspected diseases',
+                    description: 'Наблюдение при подозрении на другие заболевания',
                     confidence: 0,
-                    reasoning: 'No fixture data available.',
+                    reasoning: 'Нет доступных данных.',
                 },
             ],
         };
@@ -126,7 +126,7 @@ export async function normalizeApiError(
         raw = await res.json();
     } catch {
         return new ApiError(
-            `Request failed (${res.status} ${res.statusText})`,
+            `Ошибка запроса (${res.status} ${res.statusText})`,
             res.status
         );
     }
@@ -143,7 +143,7 @@ export async function normalizeApiError(
     }
 
     return new ApiError(
-        `Request failed (${res.status} ${res.statusText})`,
+        `Ошибка запроса (${res.status} ${res.statusText})`,
         res.status
     );
 }
@@ -165,7 +165,7 @@ export async function diagnose(
     const parsed = DiagnoseRequest.safeParse(req);
     if (!parsed.success) {
         throw new ApiError(
-            'Invalid request: ' + parsed.error.issues[0].message
+            'Неверный запрос: ' + parsed.error.issues[0].message
         );
     }
 
@@ -231,7 +231,7 @@ export function parseDiagnoseResponse(raw: unknown): DiagnoseResponse {
 
     if (!result.success) {
         throw new ApiError(
-            'Response shape is invalid: diagnoses array is missing or malformed'
+            'Неверный формат ответа: отсутствует или поврежден массив диагнозов'
         );
     }
 

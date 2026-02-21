@@ -134,7 +134,7 @@ export default function PatientPage() {
             setRuns((prev) => [entry, ...prev]);
         } catch (err) {
             const latencyMs = Date.now() - start;
-            let msg = 'An unexpected error occurred.';
+            let msg = 'Произошла непредвиденная ошибка.';
             if (err instanceof ApiError) msg = err.message;
 
             const entry = addHistoryEntry({
@@ -238,8 +238,8 @@ export default function PatientPage() {
                 {/* Chat transcript */}
                 <div className="flex-1 overflow-y-auto space-y-4 py-2 pr-1">
                     {messages.length === 0 && (
-                        <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm">
-                            No messages yet. Enter symptoms below and press Diagnose.
+                        <div className="flex items-center justify-center h-full text-gray-400 dark:text-gray-500 text-sm p-4 text-center">
+                            Пока нет сообщений. Введите симптомы ниже и нажмите «Анализ».
                         </div>
                     )}
                     {messages.map((msg, i) => (
@@ -250,7 +250,7 @@ export default function PatientPage() {
                             <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 text-white font-bold shadow-sm text-xs">AI</div>
                             <div className="max-w-[90%] w-full space-y-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Assistant</span>
+                                    <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Ассистент</span>
                                 </div>
                                 <div className="space-y-3 mt-2">
                                     <Skeleton className="h-24 w-full" />
@@ -267,9 +267,9 @@ export default function PatientPage() {
                     <div className="relative">
                         <textarea
                             id="diagnose-input"
-                            aria-label="Describe the patient's symptoms"
+                            aria-label="Опишите симптомы пациента"
                             className="w-full min-h-[80px] p-3 pr-12 border border-gray-300 dark:border-gray-700 rounded-md bg-transparent focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-sm resize-none"
-                            placeholder="Describe the patient's symptoms…"
+                            placeholder="Опишите симптомы пациента…"
                             value={symptoms}
                             onChange={(e) => setSymptoms(e.target.value)}
                             onKeyDown={(e) => {
@@ -283,15 +283,15 @@ export default function PatientPage() {
                     <div className="flex flex-wrap items-center gap-3">
                         <button
                             type="button"
-                            aria-label="Start diagnosis"
+                            aria-label="Начать анализ"
                             disabled={loading || !symptoms.trim()}
                             onClick={handleDiagnose}
                             className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white rounded-md text-sm font-medium transition-colors"
                         >
-                            {loading ? 'Diagnosing…' : 'Diagnose'}
+                            {loading ? 'Анализ…' : 'Анализ'}
                         </button>
                         <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">
-                            Ctrl+Enter to send
+                            Ctrl+Enter для отправки
                         </span>
                         {messages.findLast((m) => m.role === 'doctor') && (
                             <button
@@ -304,15 +304,15 @@ export default function PatientPage() {
                                 }}
                                 className="ml-auto text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline font-medium transition-colors"
                             >
-                                Rerun last
+                                Повторить последний
                             </button>
                         )}
                     </div>
                     <div className="flex flex-wrap gap-2 pt-2 border-t border-gray-100 dark:border-gray-800 mt-2">
-                        <button type="button" onClick={() => setSymptoms("Chest pain radiating to left arm with shortness of breath and sweating")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #1</button>
-                        <button type="button" onClick={() => setSymptoms("Persistent dry cough, wheezing, shortness of breath worsening at night")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #2</button>
-                        <button type="button" onClick={() => setSymptoms("Severe unilateral headache with nausea, photophobia, and visual aura")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #3</button>
-                        <button type="button" onClick={() => setSymptoms("Crampy lower abdominal pain, diarrhoea, nausea, and low-grade fever")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #4</button>
+                        <button type="button" onClick={() => setSymptoms("Боль в груди, отдающая в левую руку, с одышкой и потливостью")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #1</button>
+                        <button type="button" onClick={() => setSymptoms("Постоянный сухой кашель, хрипы, одышка, усиливающаяся ночью")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #2</button>
+                        <button type="button" onClick={() => setSymptoms("Сильная односторонняя головная боль с тошнотой, светобоязнью и визуальной аурой")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #3</button>
+                        <button type="button" onClick={() => setSymptoms("Схваткообразная боль внизу живота, диарея, тошнота и субфебрильная температура")} className="text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400">Вставить пример #4</button>
                     </div>
                 </div>
 
