@@ -39,7 +39,7 @@ export default function DiagnosisCard({ item }: Props) {
                         {icd10_code}
                     </Badge>
                     <span className="font-semibold text-gray-800 dark:text-gray-100">
-                        {description || <em className="opacity-50">Unknown Diagnosis</em>}
+                        {description || <em className="opacity-50">Неизвестный диагноз</em>}
                     </span>
                     {confidence !== undefined && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300 font-medium whitespace-nowrap">
@@ -53,17 +53,17 @@ export default function DiagnosisCard({ item }: Props) {
                             type="button"
                             onClick={() => setDetailed(false)}
                             className={`px-3 py-1 text-xs rounded transition-colors font-medium ${!detailed ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                            aria-label="Switch to short view"
+                            aria-label="Краткий вид"
                         >
-                            Short
+                            Кратко
                         </button>
                         <button
                             type="button"
                             onClick={() => setDetailed(true)}
                             className={`px-3 py-1 text-xs rounded transition-colors font-medium ${detailed ? 'bg-white dark:bg-gray-700 shadow-sm text-gray-900 dark:text-gray-100' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'}`}
-                            aria-label="Switch to detailed view"
+                            aria-label="Детальный вид"
                         >
-                            Detailed
+                            Детально
                         </button>
                     </div>
                 </div>
@@ -120,7 +120,7 @@ export default function DiagnosisCard({ item }: Props) {
                         {protocol_refs && protocol_refs.length > 0 && (
                             <div className="space-y-1 pt-1">
                                 <p className="text-xs font-semibold tracking-wider uppercase text-gray-500 dark:text-gray-400">
-                                    Protocol References
+                                    Ссылки на протоколы
                                 </p>
                                 <ul className="list-disc pl-5 space-y-1 text-xs text-gray-600 dark:text-gray-400">
                                     {protocol_refs.map((ref, i) => (

@@ -14,23 +14,23 @@ function timeAgo(iso: string | undefined): string {
     if (!iso) return '';
     try {
         const diffMs = Date.now() - new Date(iso).getTime();
-        if (diffMs < 0) return 'just now';
+        if (diffMs < 0) return 'только что';
         const mins = Math.floor(diffMs / 60_000);
-        if (mins < 1) return 'just now';
-        if (mins < 60) return `${mins}m ago`;
+        if (mins < 1) return 'только что';
+        if (mins < 60) return `${mins} мин назад`;
         const hrs = Math.floor(mins / 60);
-        if (hrs < 24) return `${hrs}h ago`;
+        if (hrs < 24) return `${hrs} ч назад`;
         const days = Math.floor(hrs / 24);
-        if (days < 30) return `${days}d ago`;
+        if (days < 30) return `${days} дн назад`;
         const months = Math.floor(days / 30);
-        return `${months}mo ago`;
+        return `${months} мес назад`;
     } catch {
         return '';
     }
 }
 
 // Template text pre-filled for "New assessment"
-const ASSESSMENT_TEMPLATE = 'Chief complaint: ';
+const ASSESSMENT_TEMPLATE = 'Основные жалобы: ';
 
 export default function PatientCard({ patient, lastRun }: Props) {
     const topCode = lastRun?.parsedDiagnoses?.[0]?.icd10_code;
@@ -61,7 +61,7 @@ export default function PatientCard({ patient, lastRun }: Props) {
                 <div className="min-w-0">
                     <p className="font-semibold text-base leading-tight truncate">{patient.name}</p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                        {[patient.age != null ? `Age ${patient.age}` : null, lastSeenLabel ? `· ${lastSeenLabel}` : null]
+                        {[patient.age != null ? `Возраст ${patient.age}` : null, lastSeenLabel ? `· ${lastSeenLabel}` : null]
                             .filter(Boolean)
                             .join(' ')}
                     </p>
@@ -82,7 +82,7 @@ export default function PatientCard({ patient, lastRun }: Props) {
                     </p>
                 ) : (
                     <p className="text-xs italic" style={{ color: 'var(--color-muted)' }}>
-                        No assessments yet.
+                        Нет оценок.
                     </p>
                 )}
             </div>
@@ -91,17 +91,16 @@ export default function PatientCard({ patient, lastRun }: Props) {
             <div className="flex gap-2 flex-wrap">
                 <Link
                     href={`/patient/${patient.id}`}
-                    aria-label={`Open chat for ${patient.name}`}
-                    className={primaryActionCls}
+                    aria-label={`Открыть чат для ${patient.name}`}
                 >
-                    Open chat
+                    Чат
                 </Link>
                 <Link
                     href={`/patient/${patient.id}?new=1&template=${encodeURIComponent(ASSESSMENT_TEMPLATE)}`}
-                    aria-label={`Start new assessment for ${patient.name}`}
+                    aria-label={`Начать новую оценку для ${patient.name}`}
                     className={secondaryActionCls}
                 >
-                    New assessment
+                    Новая оценка
                 </Link>
             </div>
         </Card>

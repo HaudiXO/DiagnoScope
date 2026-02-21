@@ -99,15 +99,15 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
             {/* Header */}
             <div className="flex items-center justify-between gap-2">
                 <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
-                    Task&nbsp;&amp;&nbsp;Plan
+                    Задачи&nbsp;&amp;&nbsp;План
                 </span>
                 <button
                     type="button"
                     onClick={handleReset}
                     className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
-                    title="Reset plan for this patient"
+                    title="Сбросить план для этого пациента"
                 >
-                    Reset plan
+                    Сбросить план
                 </button>
             </div>
 
@@ -115,57 +115,61 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
             <input
                 id={`${uid}-title`}
                 type="text"
-                placeholder="Task title…"
+                placeholder="Название задачи…"
                 value={board.taskTitle}
                 onChange={(e) => update({ taskTitle: e.target.value })}
                 className="w-full text-sm font-medium border-b border-gray-200 dark:border-gray-700 bg-transparent pb-1 focus:outline-none focus:border-blue-500 text-gray-800 dark:text-gray-100 placeholder-gray-400"
             />
 
             {/* Plan items */}
-            {board.plan.length > 0 && (
-                <ul className="space-y-1.5">
-                    {board.plan.map((item) => (
-                        <li key={item.id} className="flex items-start gap-2 group">
-                            <input
-                                type="checkbox"
-                                checked={item.done}
-                                onChange={() => toggleDone(item.id)}
-                                className="mt-0.5 flex-shrink-0 accent-blue-600"
-                                aria-label={`Mark "${item.text}" done`}
-                            />
-                            <span
-                                className={`flex-1 text-sm leading-snug ${item.done
-                                    ? 'line-through text-gray-400 dark:text-gray-600'
-                                    : 'text-gray-700 dark:text-gray-200'
-                                    }`}
-                            >
-                                {item.text}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => deleteStep(item.id)}
-                                className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity text-xs leading-none mt-0.5 flex-shrink-0"
-                                aria-label={`Delete step "${item.text}"`}
-                            >
-                                ✕
-                            </button>
-                        </li>
-                    ))}
-                </ul>
-            )}
+            {
+                board.plan.length > 0 && (
+                    <ul className="space-y-1.5">
+                        {board.plan.map((item) => (
+                            <li key={item.id} className="flex items-start gap-2 group">
+                                <input
+                                    type="checkbox"
+                                    checked={item.done}
+                                    onChange={() => toggleDone(item.id)}
+                                    className="mt-0.5 flex-shrink-0 accent-blue-600"
+                                    aria-label={`Mark "${item.text}" done`}
+                                />
+                                <span
+                                    className={`flex-1 text-sm leading-snug ${item.done
+                                        ? 'line-through text-gray-400 dark:text-gray-600'
+                                        : 'text-gray-700 dark:text-gray-200'
+                                        }`}
+                                >
+                                    {item.text}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => deleteStep(item.id)}
+                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity text-xs leading-none mt-0.5 flex-shrink-0"
+                                    aria-label={`Delete step "${item.text}"`}
+                                >
+                                    ✕
+                                </button>
+                            </li>
+                        ))}
+                    </ul>
+                )
+            }
 
             {/* Progress */}
-            {board.plan.length > 0 && (
-                <p className="text-xs text-gray-400 dark:text-gray-500">
-                    {doneCount}/{board.plan.length} done
-                </p>
-            )}
+            {
+                board.plan.length > 0 && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                        {doneCount}/{board.plan.length} выполнено
+                    </p>
+                )
+            }
 
             {/* Add step */}
             <div className="flex gap-2">
                 <input
                     type="text"
-                    placeholder="Add a plan step…"
+                    placeholder="Добавить шаг плана…"
                     value={newStep}
                     onChange={(e) => setNewStep(e.target.value)}
                     onKeyDown={(e) => {
@@ -179,7 +183,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                     disabled={!newStep.trim()}
                     className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded transition-colors"
                 >
-                    Add
+                    Добавить
                 </button>
             </div>
 
@@ -192,7 +196,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                     aria-expanded={howOpen}
                 >
                     <span>{howOpen ? '▾' : '▸'}</span>
-                    <span>How it works</span>
+                    <span>Как это работает</span>
                     {currentMode && (
                         <span
                             className={`ml-auto text-xs px-1.5 py-0.5 rounded-full font-medium capitalize ${modeBadgeClass}`}
@@ -205,20 +209,17 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                 {howOpen && (
                     <ul className="mt-2 space-y-1 pl-4 list-disc text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
                         <li>
-                            Symptoms are sent to the AI pipeline, which matches them against
-                            ICD-10 codes using a language model.
+                            Симптомы отправляются в ИИ пайплайн, где они сопоставляются с кодами МКБ-10 с помощью языковой модели.
                         </li>
                         <li>
-                            Each diagnosis is ranked by confidence score; optional explanations,
-                            protocol references, and warnings are returned when available.
+                            Каждый диагноз ранжируется по показателю уверенности; при возможности возвращаются дополнительные объяснения, протоколы лечения и предупреждения.
                         </li>
                         <li>
-                            If the backend is unreachable, the system falls back to curated demo
-                            fixtures so the UI always stays functional.
+                            Если сервер недоступен, система использует заранее подготовленные демо-данные, чтобы интерфейс всегда оставался рабочим.
                         </li>
                     </ul>
                 )}
             </div>
-        </section>
+        </section >
     );
 }
