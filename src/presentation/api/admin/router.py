@@ -163,7 +163,7 @@ class AdminUserController(Controller):
         )
 
     @get(
-        "/{request_user_id:uuid}",
+        "/{request_user_id:str}",
         status_code=HTTP_200_OK,
         return_dto=AdminGetUserResponseSchema,
     )
