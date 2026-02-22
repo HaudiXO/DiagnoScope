@@ -78,6 +78,6 @@ class AuthMiddleware(AbstractAuthenticationMiddleware):
         """Extract Bearer token from Authorization header."""
         auth_header = headers.get("Authorization")
 
-        if auth_header and auth_header.startswith("Bearer "):
+        if auth_header and auth_header.lower().startswith("bearer "):
             return auth_header[7:]  # Remove "Bearer " prefix
         return None
