@@ -26,7 +26,7 @@ function Header() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-4 font-normal text-xl tracking-tight text-[var(--color-primary)] hover:opacity-80 transition-opacity"
+            className="flex items-center gap-0 font-normal text-xl tracking-tight text-[var(--color-primary)] hover:opacity-80 transition-opacity"
           >
             <img src="/logo.png" alt="PAXMET Logo" width="48" height="48" className="select-none" />
             MedAssist
