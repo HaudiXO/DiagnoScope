@@ -28,7 +28,7 @@ function Header() {
             href="/"
             className="flex items-center gap-2 font-bold text-xl tracking-tight text-[var(--color-primary)] hover:opacity-80 transition-opacity"
           >
-            <img src="/logo.png" alt="PAXMET Logo" width="32" height="32" className="select-none" />
+            <img src="/logo.png" alt="PAXMET Logo" width="48" height="48" className="select-none" />
             MedAssist
           </Link>
           <nav className="flex gap-4">
