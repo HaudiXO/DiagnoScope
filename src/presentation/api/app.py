@@ -31,7 +31,6 @@ from .utils import setup_routes
 def prepare_app(auth_service: AuthService) -> Litestar:
     routes = setup_routes()
 
-    # Configure OpenAPI with Bearer token security scheme
     openapi_config = OpenAPIConfig(
         title="DiagnoScope API",
         version="1.0.0",

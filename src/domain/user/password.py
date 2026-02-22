@@ -27,11 +27,10 @@ class Password:
         if len(value) > 128:
             raise ValueError("Password must be at most 128 characters long")
 
-        # Hash the password using bcrypt
         self._hash = bcrypt.hashpw(value.encode("utf-8"), bcrypt.gensalt(rounds=12))
 
     @classmethod
-    def from_hash(cls, hash_value: str) -> "Password":
+    def from_hash(cls, hash_value: str | bytes) -> "Password":
         """Create a Password instance from an existing hash.
 
         This is used when loading a user from the database.
@@ -64,9 +63,7 @@ class Password:
     @property
     def hash(self) -> str:
         """Get the password hash as a string."""
-        return (
-            self._hash.decode("utf-8") if isinstance(self._hash, bytes) else self._hash
-        )
+        return self._hash.decode("utf-8")
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Password):

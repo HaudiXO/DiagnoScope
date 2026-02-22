@@ -7,7 +7,7 @@ from src.presentation.api.base.schemas import BaseResponseDTO
 class AdminCreateUserRequest:
     """Request schema for admin creating a user."""
 
-    username: str | None = None
+    username: str
     first_name: str = ""
     last_name: str | None = None
     role: str = "doctor"
@@ -19,7 +19,7 @@ class AdminCreateUserResponseData:
     """Response data for admin creating a user."""
 
     id: str
-    username: str | None
+    username: str
     first_name: str
     last_name: str | None
     role: str

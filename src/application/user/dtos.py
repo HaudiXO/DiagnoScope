@@ -23,7 +23,7 @@ class CreateUserInputDTO:
 @dataclass
 class CreateUserOutputDTO:
     id: str
-    username: str | None
+    username: str
     first_name: str
     last_name: str | None
     role: UserRoleDTO
@@ -34,7 +34,7 @@ class CreateUserOutputDTO:
 def entity_to_dto(user: User) -> CreateUserOutputDTO:
     return CreateUserOutputDTO(
         id=user.id.value,
-        username=user.username.value if user.username else None,
+        username=user.username.value,
         first_name=user.first_name.value,
         last_name=user.last_name.value if user.last_name else None,
         role=UserRoleDTO(user.role.value),

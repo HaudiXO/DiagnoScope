@@ -33,7 +33,7 @@ def upgrade() -> None:
         sa.Column("id", UserIdType(), nullable=False),
         sa.Column("first_name", FirstNameType(length=64), nullable=False),
         sa.Column("last_name", LastNameType(length=64), nullable=True),
-        sa.Column("username", UsernameType(length=32), nullable=True),
+        sa.Column("username", UsernameType(length=32), nullable=False, unique=True),
         sa.Column("bio", BioType(length=160), nullable=True),
         sa.Column(
             "created_at",

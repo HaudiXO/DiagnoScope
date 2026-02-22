@@ -46,19 +46,16 @@ class LoginInteractor(Interactor[LoginInputDTO, LoginOutputDTO]):
         Raises:
             ValidationError: If user not found or password invalid
         """
-        # Verify user exists
         user = await self._user_repository.get_user(Username(data.username))
         if user is None:
             raise ValidationError("Invalid credentials")
 
-        # Verify password
         if user.password_hash is None:
             raise ValidationError("Invalid credentials")
 
         if not user.password_hash.verify(data.password):
             raise ValidationError("Invalid credentials")
 
-        # Create access token
         access_token = self._auth_service.create_access_token(user.id)
 
         return LoginOutputDTO(

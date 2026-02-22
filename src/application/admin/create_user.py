@@ -43,7 +43,6 @@ class AdminCreateUserInteractor(
 
         await self._transaction_manager.commit()
 
-        # Convert to admin output DTO
         base_dto = entity_to_dto(user)
         return AdminCreateUserOutputDTO(
             id=base_dto.id,

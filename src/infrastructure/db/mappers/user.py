@@ -6,7 +6,6 @@ from src.infrastructure.db.models.user import UserModel
 class UserMapper:
     @staticmethod
     def to_domain(model: UserModel) -> User:
-        # Convert password hash string to Password VO if present
         password_vo = None
         if model.password_hash:
             password_vo = Password.from_hash(model.password_hash)

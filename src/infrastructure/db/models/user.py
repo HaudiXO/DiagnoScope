@@ -32,8 +32,8 @@ class UserModel(BaseORMModel):
     id: Mapped[UserId] = mapped_column(UserIdType, primary_key=True)
     first_name: Mapped[FirstName] = mapped_column(FirstNameType)
     last_name: Mapped[LastName | None] = mapped_column(LastNameType, nullable=True)
-    username: Mapped[Username | None] = mapped_column(
-        UsernameType, nullable=True, unique=False
+    username: Mapped[Username] = mapped_column(
+        UsernameType, nullable=False, unique=True
     )
     bio: Mapped[Bio | None] = mapped_column(BioType, nullable=True)
     created_at: Mapped[datetime] = mapped_column(

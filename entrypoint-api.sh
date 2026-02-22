@@ -1,7 +1,6 @@
 #!/bin/sh
 set -e
 
-# Get workers count from environment variable, default to 4
 API_WORKERS=${API_WORKERS:-4}
 
 echo "Starting Gunicorn with $API_WORKERS workers..."

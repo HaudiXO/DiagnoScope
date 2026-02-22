@@ -9,7 +9,7 @@ from src.domain.user.vo import FirstName, LastName, UserId, Username, UserRole
 @dataclass
 class UpsertUserData:
     id: str | None
-    username: str | None
+    username: str
     first_name: str
     last_name: str | None
     role: str
@@ -39,7 +39,7 @@ class UserService:
             id=user_id,
             first_name=FirstName(data.first_name),
             last_name=LastName(data.last_name) if data.last_name else None,
-            username=Username(data.username) if data.username else None,
+            username=Username(data.username),
             bio=existing_user.bio if existing_user else None,
             created_at=existing_user.created_at if existing_user else now,
             updated_at=now,
