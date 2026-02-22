@@ -80,6 +80,7 @@ export const ru = {
     navProfile: 'Профиль',
     logout: 'Выйти',
     loginTitle: 'С возвращением',
+    username: 'Логин',
     email: 'Email',
     password: 'Пароль',
     loginButton: 'Войти',
@@ -95,6 +96,7 @@ export const ru = {
     save: 'Сохранить',
     editProfile: 'Редактировать профиль',
     invalidEmail: 'Неверный формат email.',
+    usernameRequired: 'Введите логин.',
     passwordTooShort: 'Пароль должен содержать минимум 8 символов.',
     passwordsDoNotMatch: 'Пароли не совпадают.',
 };

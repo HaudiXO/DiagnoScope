@@ -73,6 +73,7 @@ export const en = {
     navProfile: 'Profile',
     logout: 'Logout',
     loginTitle: 'Welcome Back',
+    username: 'Username',
     email: 'Email',
     password: 'Password',
     loginButton: 'Login',
@@ -88,6 +89,7 @@ export const en = {
     save: 'Save',
     editProfile: 'Edit Profile',
     invalidEmail: 'Invalid email format.',
+    usernameRequired: 'Username is required.',
     passwordTooShort: 'Password must be at least 8 characters.',
     passwordsDoNotMatch: 'Passwords do not match.',
 };

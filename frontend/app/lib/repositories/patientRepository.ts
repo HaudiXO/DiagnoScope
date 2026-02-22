@@ -25,7 +25,7 @@ const CreatePatientApiResponseSchema = z.object({
 
 export const patientRepository: PatientRepository = {
   async listPatients(): Promise<RepoResult<PatientList>> {
-    const raw = await apiGet<unknown>('/doctor/patients/');
+    const raw = await apiGet<unknown>('/doctor/patients');
     const parsed = PatientListSchema.safeParse(raw);
 
     if (!parsed.success) {
@@ -50,7 +50,7 @@ export const patientRepository: PatientRepository = {
     const [firstName, ...rest] = input.name.trim().split(' ');
     const lastName = rest.join(' ') || '-';
 
-    const raw = await apiPost<unknown>('/doctor/patients/', {
+    const raw = await apiPost<unknown>('/doctor/patients', {
       first_name: firstName,
       last_name: lastName,
     });

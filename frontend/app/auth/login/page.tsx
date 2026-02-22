@@ -13,7 +13,7 @@ export default function LoginPage() {
     const { t } = useI18n();
     const router = useRouter();
 
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -22,8 +22,8 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
 
-        if (!email.includes('@')) {
-            setError(t.invalidEmail);
+        if (!username.trim()) {
+            setError(t.usernameRequired);
             return;
         }
         if (password.length < 8) {
@@ -34,13 +34,13 @@ export default function LoginPage() {
         setIsSubmitting(true);
 
         try {
-            const result = await apiLogin(email, password);
+            const result = await apiLogin(username, password);
 
             // Map profile to Doctor shape for AuthProvider
             const doc: Doctor = {
                 id: result.profile.id || 'doc_1',
-                fullName: `${result.profile.first_name} ${result.profile.last_name}`.trim() || email,
-                email: result.profile.email || email,
+                fullName: `${result.profile.first_name} ${result.profile.last_name}`.trim() || username,
+                email: result.profile.email || username,
                 specialty: result.profile.role || '',
             };
 
@@ -74,12 +74,12 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
                 <div>
                     <label className="block text-sm font-medium text-[var(--color-muted)] mb-1">
-                        {t.email}
+                        {t.username}
                     </label>
                     <input
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        type="text"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         className="w-full p-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-primary)] transition-colors text-[var(--color-fg)]"
                         required
                         disabled={isSubmitting}
