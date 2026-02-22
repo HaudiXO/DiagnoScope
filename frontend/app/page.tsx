@@ -134,20 +134,20 @@ export default function PatientsPage() {
           >
             ×
           </button>
-          <p className="font-semibold mb-3" style={{ color: 'var(--color-primary)' }}>
+          <p className="font-semibold mb-3 text-[var(--color-primary)]">
             {t.gettingStartedTitle}
           </p>
-          <ol className="space-y-1.5 text-sm" style={{ color: 'var(--color-muted)' }}>
+          <ol className="space-y-1.5 text-sm text-[var(--color-muted)]">
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep1Title}</span>
+              <span className="font-medium text-[var(--color-fg)] mr-2">{t.gsStep1Title}</span>
               {t.gsStep1Desc}
             </li>
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep2Title}</span>
+              <span className="font-medium text-[var(--color-fg)] mr-2">{t.gsStep2Title}</span>
               {t.gsStep2Desc}
             </li>
             <li>
-              <span className="font-medium" style={{ color: 'var(--color-fg)' }}>{t.gsStep3Title}</span>
+              <span className="font-medium text-[var(--color-fg)] mr-2">{t.gsStep3Title}</span>
               {t.gsStep3Desc}
             </li>
           </ol>
@@ -157,8 +157,8 @@ export default function PatientsPage() {
       {/* Page header */}
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t.patientsTitle}</h1>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-muted)' }}>
+          <h1 className="text-3xl font-bold tracking-tight text-[var(--color-fg)]">{t.patientsTitle}</h1>
+          <p className="text-sm mt-1 text-[var(--color-muted)]">
             {t.patientsOnFile(patients.length)}
           </p>
         </div>
@@ -247,18 +247,16 @@ export default function PatientsPage() {
         </div>
       ) : patients.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed"
-          style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+          className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)]"
         >
-          <p className="text-lg font-medium">{t.noPatientsTitle}</p>
+          <p className="text-lg font-medium text-[var(--color-fg)]">{t.noPatientsTitle}</p>
           <p className="text-sm mt-1">{t.noPatientsDesc}</p>
         </div>
       ) : sorted.length === 0 ? (
         <div
-          className="flex flex-col items-center justify-center p-10 rounded-[var(--radius-lg)] border-2 border-dashed"
-          style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+          className="flex flex-col items-center justify-center p-10 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)]"
         >
-          <p className="text-base font-medium">{t.noResultsTitle(search)}</p>
+          <p className="text-base font-medium text-[var(--color-fg)]">{t.noResultsTitle(search)}</p>
           <p className="text-sm mt-1">{t.noResultsDesc}</p>
         </div>
       ) : (

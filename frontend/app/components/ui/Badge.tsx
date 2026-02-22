@@ -10,9 +10,9 @@ const variants: Record<BadgeVariant, string> = {
     default:
         'bg-[color-mix(in_srgb,var(--color-muted)_15%,transparent)] text-[var(--color-muted)]',
     blue:
-        'bg-[color-mix(in_srgb,var(--color-primary)_12%,transparent)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_30%,transparent)]',
+        'bg-[var(--color-primary-soft)] text-[var(--color-primary)] border border-[color-mix(in_srgb,var(--color-primary)_30%,transparent)]',
     amber:
-        'bg-[var(--color-amber-bg)] text-[var(--color-amber)] border border-[color-mix(in_srgb,var(--color-amber)_30%,transparent)]',
+        'bg-[var(--color-amber-bg)] text-[var(--color-warning)] border border-[color-mix(in_srgb,var(--color-warning)_30%,transparent)]',
     red:
         'bg-[color-mix(in_srgb,var(--color-danger)_10%,transparent)] text-[var(--color-danger)] border border-[color-mix(in_srgb,var(--color-danger)_25%,transparent)]',
 };

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react';
 import { SunIcon, MoonIcon } from './components/ui/Icon';
 import { USE_MOCK } from './lib/demoMode';
 import { I18nProvider, useI18n } from '../lib/i18n';
+import { AuthProvider, useAuth } from '../lib/auth';
 import './globals.css';
 
 // Can't export metadata from a client component — keep it here as a comment for reference.
@@ -66,6 +67,7 @@ function LangToggle() {
 
 function Header() {
   const { t } = useI18n();
+  const { isAuthed } = useAuth();
 
   return (
     <header
@@ -86,16 +88,31 @@ function Header() {
           <nav className="flex gap-4">
             <Link
               href="/"
-              className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+              className="text-sm font-medium px-2 py-1 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] transition-colors"
             >
               {t.navPatients}
             </Link>
             <Link
               href="/history"
-              className="text-sm font-medium text-[var(--color-muted)] hover:text-[var(--color-fg)] transition-colors"
+              className="text-sm font-medium px-2 py-1 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] transition-colors"
             >
               {t.navHistory}
             </Link>
+            {isAuthed ? (
+              <Link
+                href="/doctor/profile"
+                className="text-sm font-medium px-2 py-1 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] transition-colors"
+              >
+                {t.navProfile}
+              </Link>
+            ) : (
+              <Link
+                href="/auth/login"
+                className="text-sm font-medium px-2 py-1 rounded-[var(--radius-sm)] text-[var(--color-muted)] hover:text-[var(--color-primary)] hover:bg-[var(--color-primary-soft)] transition-colors"
+              >
+                {t.navLogin}
+              </Link>
+            )}
           </nav>
         </div>
         <div className="flex items-center gap-2">
@@ -125,10 +142,12 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-screen antialiased flex flex-col w-full overflow-x-hidden" style={{ background: 'var(--color-bg)', color: 'var(--color-fg)' }}>
-        <I18nProvider>
-          <Header />
-          <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
-        </I18nProvider>
+        <AuthProvider>
+          <I18nProvider>
+            <Header />
+            <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+          </I18nProvider>
+        </AuthProvider>
       </body>
     </html>
   );

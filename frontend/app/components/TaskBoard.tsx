@@ -87,24 +87,24 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
     const doneCount = board.plan.filter((i) => i.done).length;
     const modeBadgeClass =
         currentMode === 'live'
-            ? 'bg-green-100 dark:bg-green-900/40 text-green-700 dark:text-green-300'
+            ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
             : currentMode === 'mock'
-                ? 'bg-yellow-100 dark:bg-yellow-900/40 text-yellow-700 dark:text-yellow-300'
+                ? 'bg-[var(--color-amber-bg)] text-[var(--color-warning)]'
                 : currentMode === 'fallback'
-                    ? 'bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400';
+                    ? 'bg-orange-900/40 text-orange-400'
+                    : 'bg-[var(--color-elevated)] text-[var(--color-muted)]';
 
     return (
-        <section className="flex flex-col gap-3 border border-gray-200 dark:border-gray-700 rounded-lg p-4 bg-white dark:bg-gray-900 shadow-sm">
+        <section className="flex flex-col gap-3 border border-[var(--color-border)] rounded-[var(--radius-lg)] p-4 bg-[var(--color-surface)] shadow-[var(--shadow-sm)]">
             {/* Header */}
             <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-semibold uppercase tracking-widest text-gray-400 dark:text-gray-500">
+                <span className="text-xs font-semibold uppercase tracking-widest text-[var(--color-muted)]">
                     Задачи&nbsp;&amp;&nbsp;План
                 </span>
                 <button
                     type="button"
                     onClick={handleReset}
-                    className="text-xs text-red-500 hover:text-red-700 dark:hover:text-red-400 transition-colors"
+                    className="text-xs text-[var(--color-danger)] hover:opacity-80 transition-opacity"
                     title="Сбросить план для этого пациента"
                 >
                     Сбросить план
@@ -118,7 +118,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                 placeholder="Название задачи…"
                 value={board.taskTitle}
                 onChange={(e) => update({ taskTitle: e.target.value })}
-                className="w-full text-sm font-medium border-b border-gray-200 dark:border-gray-700 bg-transparent pb-1 focus:outline-none focus:border-blue-500 text-gray-800 dark:text-gray-100 placeholder-gray-400"
+                className="w-full text-sm font-medium border-b border-[var(--color-border)] bg-transparent pb-1 focus:outline-none focus:border-[var(--color-primary)] text-[var(--color-fg)] placeholder:text-[var(--color-muted)] transition-colors"
             />
 
             {/* Plan items */}
@@ -131,13 +131,13 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                                     type="checkbox"
                                     checked={item.done}
                                     onChange={() => toggleDone(item.id)}
-                                    className="mt-0.5 flex-shrink-0 accent-blue-600"
+                                    className="mt-0.5 flex-shrink-0 accent-[var(--color-primary)] focus-ring rounded-sm"
                                     aria-label={`Mark "${item.text}" done`}
                                 />
                                 <span
                                     className={`flex-1 text-sm leading-snug ${item.done
-                                        ? 'line-through text-gray-400 dark:text-gray-600'
-                                        : 'text-gray-700 dark:text-gray-200'
+                                        ? 'line-through text-[var(--color-muted)] opacity-60'
+                                        : 'text-[var(--color-fg)]'
                                         }`}
                                 >
                                     {item.text}
@@ -145,7 +145,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                                 <button
                                     type="button"
                                     onClick={() => deleteStep(item.id)}
-                                    className="opacity-0 group-hover:opacity-100 text-gray-400 hover:text-red-500 transition-opacity text-xs leading-none mt-0.5 flex-shrink-0"
+                                    className="opacity-0 group-hover:opacity-100 text-[var(--color-muted)] hover:text-[var(--color-danger)] transition-opacity text-xs leading-none mt-0.5 flex-shrink-0"
                                     aria-label={`Delete step "${item.text}"`}
                                 >
                                     ✕
@@ -159,7 +159,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
             {/* Progress */}
             {
                 board.plan.length > 0 && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-xs text-[var(--color-muted)]">
                         {doneCount}/{board.plan.length} выполнено
                     </p>
                 )
@@ -175,24 +175,24 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                     onKeyDown={(e) => {
                         if (e.key === 'Enter') addStep();
                     }}
-                    className="flex-1 text-sm border border-gray-300 dark:border-gray-700 rounded px-2 py-1 bg-transparent focus:outline-none focus:ring-1 focus:ring-blue-500 placeholder-gray-400"
+                    className="flex-1 text-sm border border-[var(--color-border)] rounded-[var(--radius-sm)] px-2 py-1 bg-[var(--color-elevated)] focus-ring placeholder:text-[var(--color-muted)] text-[var(--color-fg)]"
                 />
                 <button
                     type="button"
                     onClick={addStep}
                     disabled={!newStep.trim()}
-                    className="text-sm px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded transition-colors"
+                    className="text-sm px-3 py-1 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] disabled:opacity-40 disabled:cursor-not-allowed text-[#070A06] font-medium rounded-[var(--radius-sm)] transition-colors"
                 >
                     Добавить
                 </button>
             </div>
 
             {/* ── How it works ─────────────────────────────────────────────── */}
-            <div className="border-t border-gray-100 dark:border-gray-800 pt-2 mt-1">
+            <div className="border-t border-[var(--color-border)] pt-2 mt-1">
                 <button
                     type="button"
                     onClick={() => setHowOpen((o) => !o)}
-                    className="flex items-center gap-1.5 text-xs text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors w-full text-left"
+                    className="flex items-center gap-1.5 text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)] transition-colors w-full text-left"
                     aria-expanded={howOpen}
                 >
                     <span>{howOpen ? '▾' : '▸'}</span>
@@ -207,7 +207,7 @@ export default function TaskBoard({ patientId, currentMode }: Props) {
                 </button>
 
                 {howOpen && (
-                    <ul className="mt-2 space-y-1 pl-4 list-disc text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                    <ul className="mt-2 space-y-1 pl-4 list-disc text-xs text-[var(--color-muted)] leading-relaxed">
                         <li>
                             Симптомы отправляются в ИИ пайплайн, где они сопоставляются с кодами МКБ-10 с помощью языковой модели.
                         </li>

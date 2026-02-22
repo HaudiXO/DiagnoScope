@@ -51,8 +51,8 @@ export default function PatientCard({ patient, lastRun }: Props) {
         'rounded-[var(--radius-md)] px-2.5 py-1.5 focus-ring whitespace-nowrap',
     ].join(' ');
 
-    const primaryActionCls = `${actionCls} bg-[var(--color-primary)] text-[var(--color-primary-fg)] hover:bg-[var(--color-primary-hover)]`;
-    const secondaryActionCls = `${actionCls} border border-[var(--color-border)] bg-[var(--color-surface)] text-[var(--color-fg)] hover:bg-[color-mix(in_srgb,var(--color-primary)_6%,var(--color-surface))]`;
+    const primaryActionCls = `${actionCls} bg-[var(--color-primary)] text-[#070A06] hover:bg-[var(--color-primary-hover)] hover:shadow-[0_0_12px_rgba(161,248,0,0.25)]`;
+    const secondaryActionCls = `${actionCls} border border-[var(--color-border)] bg-transparent text-[var(--color-fg)] hover:bg-[var(--color-primary-soft)]`;
 
     return (
         <Card className="flex flex-col gap-3 hover:shadow-[var(--shadow-md)] transition-shadow">

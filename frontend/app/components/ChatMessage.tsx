@@ -55,8 +55,8 @@ function ModeBadge({ mode }: { mode: FixtureMode | 'live' | null }) {
     const label = mode === 'demo' ? 'Демо' : 'Фолбэк';
     const cls =
         mode === 'demo'
-            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-            : 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200';
+            ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]'
+            : 'bg-[var(--color-amber-bg)] text-[var(--color-warning)]';
     return (
         <span
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${cls}`}
@@ -93,7 +93,7 @@ function CopyIcdButton({ diagnoses }: { diagnoses: DiagnosisItem[] }) {
             type="button"
             onClick={handleCopy}
             aria-label="Copy ICD-10 codes to clipboard"
-            className="text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 underline transition-colors"
+            className="text-xs text-[var(--color-muted)] hover:text-[var(--color-fg)] underline transition-colors"
         >
             {copied ? '✓ Скопировано!' : 'Скопировать коды МКБ-10'}
         </button>
@@ -108,7 +108,7 @@ function DoctorBubble({ msg, onReuse }: { msg: DoctorMessage; onReuse?: (text: s
     return (
         <div className="flex justify-end">
             <div className="max-w-[80%] space-y-1 flex flex-col items-end">
-                <div className="rounded-2xl rounded-tr-sm bg-blue-600 px-4 py-2.5 text-sm text-white shadow-sm">
+                <div className="rounded-2xl rounded-tr-[var(--radius-sm)] bg-[var(--color-elevated)] border border-[var(--color-border)] px-4 py-2.5 text-sm text-[var(--color-fg)] shadow-[var(--shadow-sm)]">
                     <p className="whitespace-pre-wrap break-words">
                         {msg.symptoms || <em className="opacity-60">(пусто)</em>}
                     </p>
@@ -118,12 +118,12 @@ function DoctorBubble({ msg, onReuse }: { msg: DoctorMessage; onReuse?: (text: s
                         <button
                             type="button"
                             onClick={() => onReuse(msg.symptoms)}
-                            className="text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 underline transition-colors"
+                            className="text-xs text-[var(--color-muted)] hover:text-[var(--color-primary)] underline transition-colors"
                         >
                             Использовать как новый ввод
                         </button>
                     )}
-                    <p className="text-right text-xs text-gray-400 dark:text-gray-500">
+                    <p className="text-right text-xs text-[var(--color-muted)]">
                         {formatTime(msg.timestamp)}
                     </p>
                 </div>
@@ -142,21 +142,21 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
             id={msg.entryId}
             className="flex justify-start gap-3"
         >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 text-white font-bold shadow-sm text-xs">AI</div>
+            <div className="w-8 h-8 rounded-full bg-[var(--color-primary-soft)] border border-[var(--color-primary)]/30 flex items-center justify-center flex-shrink-0 text-[var(--color-primary)] font-bold shadow-[var(--shadow-sm)] text-xs">AI</div>
             <div className="max-w-[90%] w-full space-y-2">
                 {/* Header */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-[var(--color-muted)] uppercase tracking-wide">
                         Ассистент
                     </span>
                     <ModeBadge mode={msg.mode} />
                     {msg.traceId && (
-                        <span className="font-mono text-xs text-gray-400 dark:text-gray-500">
+                        <span className="font-mono text-xs text-[var(--color-muted)]">
                             #{msg.traceId.slice(0, 8)}
                         </span>
                     )}
                     {msg.latencyMs !== undefined && (
-                        <span className="text-xs text-gray-400 dark:text-gray-500">
+                        <span className="text-xs text-[var(--color-muted)]">
                             {msg.latencyMs}ms
                         </span>
                     )}
@@ -174,7 +174,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
 
                 {/* Empty diagnoses (non-error) */}
                 {!msg.error && safeDiagnoses.length === 0 && (
-                    <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50 px-4 py-3 text-sm text-gray-500">
+                    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-elevated)] px-4 py-3 text-sm text-[var(--color-muted)]">
                         Диагнозы не найдены.
                     </div>
                 )}
@@ -206,7 +206,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                     </div>
                 )}
 
-                <p className="text-xs text-gray-400 dark:text-gray-500">
+                <p className="text-xs text-[var(--color-muted)]">
                     {formatTime(msg.timestamp)}
                 </p>
             </div>
