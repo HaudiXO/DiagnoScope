@@ -9,7 +9,6 @@ import { diagnose, ApiError, type DiagnoseResponseWithMode } from '../../lib/api
 import { addHistoryEntry } from '../../lib/history';
 import { addPatientRun, readPatients, type Patient } from '../../lib/patients';
 import { getPatientRuns, type HistoryEntry } from '../../lib/patientRuns';
-import TaskBoard from '../../components/TaskBoard';
 import Skeleton from '../../components/ui/Skeleton';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
@@ -63,7 +62,6 @@ export default function PatientPage() {
     const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
     const [debugOpen, setDebugOpen] = useState(false);
     const [lastMode, setLastMode] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState<'chat' | 'tasks'>('chat');
 
     const chatBottomRef = useRef<HTMLDivElement>(null);
 
@@ -191,26 +189,8 @@ export default function PatientPage() {
     // ── Main layout ───────────────────────────────────────────────────────
     return (
         <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-8rem)] overflow-hidden">
-            {/* Mobile tabs */}
-            <div className="lg:hidden flex gap-2 border-b border-[var(--color-border)] pb-2 mb-2 flex-shrink-0">
-                <button
-                    type="button"
-                    onClick={() => setActiveTab('chat')}
-                    className={`px-4 py-2 text-sm font-medium rounded-[var(--radius-sm)] transition-colors ${activeTab === 'chat' ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'text-[var(--color-muted)] hover:text-[var(--color-fg)]'}`}
-                >
-                    Chat
-                </button>
-                <button
-                    type="button"
-                    onClick={() => setActiveTab('tasks')}
-                    className={`px-4 py-2 text-sm font-medium rounded-[var(--radius-sm)] transition-colors ${activeTab === 'tasks' ? 'bg-[var(--color-primary-soft)] text-[var(--color-primary)]' : 'text-[var(--color-muted)] hover:text-[var(--color-fg)]'}`}
-                >
-                    Task Board
-                </button>
-            </div>
-
             {/* ── Main panel ── */}
-            <div className={`flex flex-col flex-1 min-w-0 gap-4 overflow-hidden ${activeTab === 'chat' ? 'flex' : 'hidden lg:flex'}`}>
+            <div className="flex flex-col flex-1 min-w-0 gap-4 overflow-hidden flex">
                 <header className="flex-shrink-0">
                     {/* Back link on mobile (sidebar hidden) */}
                     <Link
@@ -332,11 +312,6 @@ export default function PatientPage() {
                     </div>
                 )}
             </div>
-
-            {/* ── Right panel: TaskBoard ── */}
-            <aside className={`flex-col lg:w-80 flex-shrink-0 lg:border-l border-[var(--color-border)] lg:pl-4 overflow-y-auto ${activeTab === 'tasks' ? 'flex' : 'hidden lg:flex'}`}>
-                <TaskBoard patientId={patientId} currentMode={lastMode} />
-            </aside>
         </div>
     );
 }
