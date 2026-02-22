@@ -1,6 +1,10 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.infrastructure.db.repos import AdminRepositoryImpl, UserRepositoryImpl
+from src.infrastructure.db.repos import (
+    AdminRepositoryImpl,
+    PatientRepositoryImpl,
+    UserRepositoryImpl,
+)
 
 
 class HolderDao:
@@ -8,3 +12,4 @@ class HolderDao:
         self.session = session
         self.user_repo = UserRepositoryImpl(session)
         self.admin_repo = AdminRepositoryImpl(session)
+        self.patient_repo = PatientRepositoryImpl(session)

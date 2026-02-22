@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
 from src.application.common.transaction import TransactionManager
 from src.domain.admin import AdminRepository
+from src.domain.patient.repository import PatientRepository
 from src.domain.user import UserRepository
 from src.infrastructure.config import Config
 from src.infrastructure.db.factory import create_engine, create_session_maker
@@ -63,3 +64,10 @@ class DBProvider(Provider):
         holder_dao: HolderDao,
     ) -> AdminRepository:
         return holder_dao.admin_repo
+
+    @provide(scope=Scope.REQUEST)
+    async def get_patient_repository(
+        self,
+        holder_dao: HolderDao,
+    ) -> PatientRepository:
+        return holder_dao.patient_repo

@@ -4,6 +4,7 @@ from .admin import admin_router
 from .auth import auth_router
 from .health import health_router
 from .mock import mock_router
+from .patient import patient_router
 from .user import user_router
 
 
@@ -12,6 +13,7 @@ def setup_routes() -> Router:
         admin_router,
         auth_router,
         user_router,
+        patient_router,
         mock_router,
         health_router,
     ]
