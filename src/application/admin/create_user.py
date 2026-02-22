@@ -4,7 +4,7 @@ from src.application.admin.dtos import (
 )
 from src.application.common.interactor import Interactor
 from src.application.common.transaction import TransactionManager
-from src.application.user.dtos import UserRoleDTO, entity_to_dto
+from src.application.user.dtos import UserRoleDTO
 from src.application.user.service import UpsertUserData, UserService
 
 
@@ -43,13 +43,12 @@ class AdminCreateUserInteractor(
 
         await self._transaction_manager.commit()
 
-        base_dto = entity_to_dto(user)
         return AdminCreateUserOutputDTO(
-            id=base_dto.id,
-            username=base_dto.username,
-            first_name=base_dto.first_name,
-            last_name=base_dto.last_name,
-            role=UserRoleDTO(base_dto.role.value),
-            language_code=base_dto.language_code,
-            is_new=base_dto.is_new,
+            id=user.id.value,
+            username=user.username.value,
+            first_name=user.first_name.value,
+            last_name=user.last_name.value if user.last_name else None,
+            role=UserRoleDTO(user.role.value),
+            language_code=user.language_code.value if user.language_code else None,
+            is_new=user.is_new,
         )
