@@ -48,7 +48,7 @@ export default function LoginPage() {
             router.push('/doctor/profile');
         } catch (err) {
             if (err instanceof ApiError) {
-                if (err.status === 401 || err.status === 403) {
+                if (err.status === 400 || err.status === 401 || err.status === 403 || err.status === 422) {
                     setError('Неверный логин или пароль');
                 } else {
                     setError('Ошибка сервера/сети');

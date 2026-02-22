@@ -8,14 +8,14 @@ export interface LoginResult {
 }
 
 export async function login(username: string, password: string): Promise<LoginResult> {
-    const data = await apiPost<{ access_token: string; token_type: string }>(
+    const data = await apiPost<any>(
         '/auth/login',
         { username, password },
     );
 
     const tokenData: TokenData = {
-        accessToken: data.access_token,
-        tokenType: data.token_type,
+        accessToken: data.accessToken || data.access_token,
+        tokenType: data.tokenType || data.token_type || 'bearer',
     };
 
     saveToken(tokenData);
