@@ -62,66 +62,10 @@ function LangToggle() {
   );
 }
 
-function useAppMode() {
-  const [mode, setMode] = useState<string>(USE_MOCK ? 'demo' : 'live');
 
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem('dx_history_v1');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && parsed.length > 0) {
-          const last = parsed[0].mode;
-          if (last) setMode(last);
-        }
-      }
-    } catch { }
-
-    const handler = (e: Event) => {
-      const custom = e as CustomEvent<string>;
-      setMode(custom.detail);
-    };
-    window.addEventListener('medassist-mode', handler);
-    return () => window.removeEventListener('medassist-mode', handler);
-  }, []);
-
-  return mode;
-}
-
-function Footer() {
-  const { t } = useI18n();
-  const mode = useAppMode();
-
-  let displayMode = mode;
-  if (mode === 'demo') displayMode = t.modeDemo || 'demo';
-  else if (mode === 'fallback') displayMode = t.modeFallback || 'fallback';
-  else if (mode === 'live') displayMode = t.modeLive || 'live';
-
-  return (
-    <footer className="mt-auto border-t border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-center text-xs text-[var(--color-muted)] flex flex-col items-center gap-2 w-full">
-      <p>
-        <strong>{t.demoDisclaimerTitle}</strong> {t.demoDisclaimerText}
-      </p>
-      <p>
-        {t.currentMode} <span className="font-semibold px-1.5 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-[var(--color-fg)]">{displayMode}</span>
-      </p>
-    </footer>
-  );
-}
 
 function Header() {
   const { t } = useI18n();
-  const mode = useAppMode();
-
-  let displayMode = mode;
-  let BadgeStyle = 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300';
-  if (mode === 'demo') {
-    displayMode = t.modeDemo || 'Демо';
-    BadgeStyle = 'bg-purple-100 text-purple-800 dark:bg-purple-900/50 dark:text-purple-300';
-  } else if (mode === 'fallback') {
-    displayMode = t.modeFallback || 'Fallback';
-    BadgeStyle = 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/50 dark:text-yellow-300';
-  }
 
   return (
     <header
@@ -129,20 +73,15 @@ function Header() {
         borderBottom: '1px solid var(--color-border)',
         background: 'var(--color-surface)',
       }}
-      className="sticky top-0 z-10"
+      className="sticky top-0 z-10 shadow-sm"
     >
       <div className="max-w-5xl mx-auto px-6 h-14 flex items-center justify-between">
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="flex items-center gap-2 font-bold text-base tracking-tight hover:text-[var(--color-primary)] transition-colors"
+            className="flex items-center gap-2 font-bold text-xl tracking-tight text-[var(--color-primary)] hover:opacity-80 transition-opacity"
           >
             🩺 MedAssist
-            {mode !== 'live' && (
-              <span className={`text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-sm ${BadgeStyle}`}>
-                {displayMode}
-              </span>
-            )}
           </Link>
           <nav className="flex gap-4">
             <Link
@@ -189,7 +128,6 @@ export default function RootLayout({
         <I18nProvider>
           <Header />
           <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
-          <Footer />
         </I18nProvider>
       </body>
     </html>

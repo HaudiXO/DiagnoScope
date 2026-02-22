@@ -25,6 +25,7 @@ export default function Card({
                 'border border-[var(--color-border)]',
                 'rounded-[var(--radius-md)]',
                 'shadow-[var(--shadow-sm)]',
+                'hover-card-anim',
                 paddings[padding],
                 className,
             ]

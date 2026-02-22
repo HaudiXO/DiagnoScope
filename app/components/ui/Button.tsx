@@ -9,7 +9,7 @@ interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-    'inline-flex items-center justify-center font-medium transition-colors focus-ring rounded-[var(--radius-md)] cursor-pointer select-none';
+    'inline-flex items-center justify-center font-medium transition-all duration-200 focus-ring rounded-[var(--radius-md)] cursor-pointer select-none active:scale-[0.98]';
 
 const variants: Record<ButtonVariant, string> = {
     primary:
