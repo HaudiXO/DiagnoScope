@@ -92,21 +92,15 @@ export async function apiGet<T = unknown>(path: string, options?: RequestOptions
 export async function apiPost<T = unknown>(
     path: string,
     body?: unknown,
-    options?: { formUrlEncoded?: boolean },
     requestOptions?: RequestOptions,
 ): Promise<T> {
     const timeout = withTimeoutSignal(requestOptions);
 
-    const headers: Record<string, string> = { ...authHeaders() };
-
-    let serializedBody: string | undefined;
-    if (options?.formUrlEncoded && body && typeof body === 'object') {
-        headers['Content-Type'] = 'application/x-www-form-urlencoded';
-        serializedBody = new URLSearchParams(body as Record<string, string>).toString();
-    } else {
-        headers['Content-Type'] = 'application/json';
-        serializedBody = body !== undefined ? JSON.stringify(body) : undefined;
-    }
+    const headers: Record<string, string> = {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+    };
+    const serializedBody = body !== undefined ? JSON.stringify(body) : undefined;
 
     try {
         const res = await fetch(`${API_BASE_URL}${path}`, {

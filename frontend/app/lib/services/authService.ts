@@ -11,7 +11,6 @@ export async function login(username: string, password: string): Promise<LoginRe
     const data = await apiPost<{ access_token: string; token_type: string }>(
         '/auth/login',
         { username, password },
-        { formUrlEncoded: true },
     );
 
     const tokenData: TokenData = {
