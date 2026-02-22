@@ -1,4 +1,4 @@
-from sqlalchemy import select, update
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
 
 from src.domain.user.entity import User
@@ -59,7 +59,8 @@ class UserRepositoryImpl(UserRepository, BaseSQLAlchemyRepo):
         return UserMapper.to_domain(orm_model)
 
     async def delete_user(self, user_id: UserId) -> None:
-        raise NotImplementedError
+        stmt = delete(UserModel).where(UserModel.id == user_id.value)
+        await self._session.execute(stmt)
 
     async def update_language(
         self, user_id: UserId, language_code: LanguageCode
@@ -70,3 +71,22 @@ class UserRepositoryImpl(UserRepository, BaseSQLAlchemyRepo):
             .values(language_code=language_code)
         )
         await self._session.execute(stmt)
+
+    async def list_users(
+        self, limit: int = 100, offset: int = 0
+    ) -> tuple[list[User], int]:
+        count_stmt = select(func.count()).select_from(UserModel)
+        count_result = await self._session.execute(count_stmt)
+        total = count_result.scalar_one()
+
+        stmt = (
+            select(UserModel)
+            .order_by(UserModel.created_at.desc())
+            .limit(limit)
+            .offset(offset)
+        )
+        result = await self._session.execute(stmt)
+        user_models = result.scalars().all()
+
+        users = [UserMapper.to_domain(model) for model in user_models]
+        return users, total

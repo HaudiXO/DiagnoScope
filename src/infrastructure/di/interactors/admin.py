@@ -3,6 +3,9 @@ from dishka import Provider, Scope, provide
 from src.application.admin import (
     AdminAuthorizationService,
     AdminCreateUserInteractor,
+    AdminDeleteUserInteractor,
+    AdminGetUserInteractor,
+    AdminListUsersInteractor,
 )
 from src.application.common.transaction import TransactionManager
 from src.application.user.service import UserService
@@ -29,5 +32,30 @@ class AdminInteractorProvider(Provider):
     ) -> AdminCreateUserInteractor:
         return AdminCreateUserInteractor(
             user_service=user_service,
+            transaction_manager=transaction_manager,
+        )
+
+    @provide
+    def provide_admin_get_user_interactor(
+        self,
+        user_repository: UserRepository,
+    ) -> AdminGetUserInteractor:
+        return AdminGetUserInteractor(user_repository)
+
+    @provide
+    def provide_admin_list_users_interactor(
+        self,
+        user_repository: UserRepository,
+    ) -> AdminListUsersInteractor:
+        return AdminListUsersInteractor(user_repository)
+
+    @provide
+    def provide_admin_delete_user_interactor(
+        self,
+        user_repository: UserRepository,
+        transaction_manager: TransactionManager,
+    ) -> AdminDeleteUserInteractor:
+        return AdminDeleteUserInteractor(
+            user_repository=user_repository,
             transaction_manager=transaction_manager,
         )

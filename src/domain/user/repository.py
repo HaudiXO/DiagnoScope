@@ -18,6 +18,11 @@ class UserRepository(Protocol):
     async def get_user(self, identifier: UserId | Username) -> User | None: ...
 
     @abstractmethod
+    async def list_users(
+        self, limit: int = 100, offset: int = 0
+    ) -> tuple[list[User], int]: ...
+
+    @abstractmethod
     async def create_user(self, user: User) -> User: ...
 
     @abstractmethod
