@@ -1,0 +1,11 @@
+{
+  "submission_name": "final_mvp_eval_v3",
+  "total_protocols": 212,
+  "accuracy_at_1_percent": 6.6,
+  "recall_at_3_percent": 37.74,
+  "latency_avg_s": 12.246,
+  "latency_min_s": 3.941,
+  "latency_max_s": 37.134,
+  "latency_p50_s": 11.759,
+  "latency_p95_s": 20.713
+}
