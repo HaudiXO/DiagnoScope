@@ -1,0 +1,31 @@
+# Airflow logs
+qazcode/logs/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+.venv/
+venv/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Test and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment files
+.env

@@ -1,0 +1,11 @@
+{
+  "submission_name": "fix_run",
+  "total_protocols": 220,
+  "accuracy_at_1_percent": 4.55,
+  "recall_at_3_percent": 21.36,
+  "latency_avg_s": 11.578,
+  "latency_min_s": 4.205,
+  "latency_max_s": 25.76,
+  "latency_p50_s": 10.68,
+  "latency_p95_s": 19.062
+}

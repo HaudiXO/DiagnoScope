@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-API_WORKERS=${API_WORKERS:-4}
+API_WORKERS=${API_WORKERS:-1}
 
 echo "Starting Gunicorn with $API_WORKERS workers..."
 
