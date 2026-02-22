@@ -8,6 +8,10 @@ DiagnoScope/
 │   ├── application/       # Use cases (interactors), DTOs, services
 │   ├── infrastructure/    # DB models, migrations, repository implementations, DI
 │   └── presentation/      # Litestar API controllers, middleware
+├── qazcode/               # QAZ ML/NLP service — owned by the ML team
+│   ├── src/               # QAZ service source code
+│   ├── airflow/           # Airflow DAGs and configuration
+│   └── models/            # Model weights and artifacts
 ├── ml/                    # ML models, notebooks, training scripts — owned by the ML team
 ├── data/
 │   └── test_set/          # Shared test data and fixtures (do NOT commit large files)
@@ -21,8 +25,9 @@ DiagnoScope/
 ├── justfile               # Common development commands
 ├── pyproject.toml         # Python dependencies (UV)
 ├── alembic.ini            # Database migration configuration
-├── docker-compose.yml     # Local development services
-├── docker-compose.prod.yml # Production deployment
+├── docker-compose.yml     # Local development services (Postgres, Airflow, ML infra, Monitoring)
+├── docker-compose.prod.yml # Production deployment (includes QAZ service)
+├── docker-compose-test.yml # Test database configuration (temporarily removed until we have a stable test setup)
 └── .gitignore             # Ignores build artifacts, env files, OS junk
 ```
 
@@ -35,6 +40,7 @@ DiagnoScope/
 | `src/application/` | Backend | Use cases (interactors), DTOs, services |
 | `src/infrastructure/` | Backend | SQLAlchemy models, migrations, DI providers |
 | `src/presentation/` | Backend | Litestar controllers, middleware, API routes |
+| `qazcode/` | ML | QAZ ML/NLP service source code, Airflow DAGs |
 | `tests/` | Backend | pytest test files, factories |
 | `ml/` | ML | Jupyter notebooks, model weights (small), training scripts |
 | `data/test_set/` | Shared | CSV/JSON test fixtures; keep files small |
