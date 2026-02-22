@@ -62,3 +62,61 @@ test-db-up:
 lint:
     uv run ruff format src  # tests
     uv run ruff check src --fix  # tests
+
+# Production stack (includes API + Airflow + ML + Monitoring)
+prod-up:
+    docker-compose -f docker-compose.prod.yml up -d
+
+prod-down:
+    docker-compose -f docker-compose.prod.yml down
+
+prod-logs:
+    docker-compose -f docker-compose.prod.yml logs -f
+
+prod-build:
+    docker-compose -f docker-compose.prod.yml build
+
+# Local development stack (no API - run API locally with 'just api')
+# Includes: Postgres, Airflow, ML infra, Monitoring
+up:
+    docker-compose up -d
+
+down:
+    docker-compose down
+
+logs:
+    docker-compose logs -f
+
+# Individual service groups (works with both compose files)
+airflow-up:
+    docker-compose up -d airflow-webserver airflow-scheduler airflow-worker airflow-triggerer airflow-init
+
+airflow-down:
+    docker-compose stop airflow-webserver airflow-scheduler airflow-worker airflow-triggerer
+
+airflow-logs:
+    docker-compose logs -f airflow-webserver airflow-scheduler airflow-worker
+
+# ML Infrastructure only
+ml-infra-up:
+    docker-compose up -d minio redis qdrant postgres
+
+ml-infra-down:
+    docker-compose stop minio redis qdrant postgres
+
+# Monitoring stack
+monitoring-up:
+    docker-compose up -d prometheus grafana statsd-exporter
+
+monitoring-down:
+    docker-compose stop prometheus grafana statsd-exporter
+
+# Database only
+db-up:
+    docker-compose up -d postgres
+
+db-down:
+    docker-compose stop postgres
+
+db-logs:
+    docker-compose logs -f postgres
