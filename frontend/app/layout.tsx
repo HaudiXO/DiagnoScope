@@ -1,10 +1,9 @@
 'use client';
 
-import type { Metadata } from 'next';
 import Link from 'next/link';
-import { USE_MOCK } from './lib/demoMode';
 import { I18nProvider, useI18n } from '../lib/i18n';
 import { AuthProvider, useAuth } from '../lib/auth';
+import { FallbackProvider, ModeBadge } from './lib/FallbackContext';
 import './globals.css';
 
 // Can't export metadata from a client component — keep it here as a comment for reference.
@@ -61,8 +60,20 @@ function Header() {
             )}
           </nav>
         </div>
+
+        {/* Mock / Fallback badge */}
+        <ModeBadge />
       </div>
     </header>
+  );
+}
+
+function MedicalDisclaimer() {
+  const { t } = useI18n();
+  return (
+    <p className="max-w-5xl mx-auto px-6 pb-4 text-xs text-[var(--color-muted)]">
+      {t.medicalDisclaimer}
+    </p>
   );
 }
 
@@ -80,8 +91,11 @@ export default function RootLayout({
       <body className="min-h-screen antialiased flex flex-col w-full overflow-x-hidden" style={{ background: 'var(--color-bg)', color: 'var(--color-fg)' }}>
         <AuthProvider>
           <I18nProvider>
-            <Header />
-            <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+            <FallbackProvider>
+              <Header />
+              <main className="max-w-5xl mx-auto px-6 py-8 flex-1 w-full">{children}</main>
+              <MedicalDisclaimer />
+            </FallbackProvider>
           </I18nProvider>
         </AuthProvider>
       </body>

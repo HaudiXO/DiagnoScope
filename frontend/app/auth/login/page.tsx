@@ -5,17 +5,22 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../../../lib/auth';
 import { useI18n } from '../../../lib/i18n';
+import { login as apiLogin, ApiError } from '../../lib/services/authService';
+import { useFallback } from '../../lib/FallbackContext';
+import type { Doctor } from '../../../lib/auth';
 
 export default function LoginPage() {
-    const { login } = useAuth();
+    const { loginWithToken } = useAuth();
     const { t } = useI18n();
+    const { setFallback } = useFallback();
     const router = useRouter();
 
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setError('');
 
@@ -28,17 +33,40 @@ export default function LoginPage() {
             return;
         }
 
-        // Mock login
-        const mockDoctor = {
-            id: 'doc_1',
-            fullName: 'Dr. John Doe',
-            email: email,
-            specialty: 'Therapist',
-        };
-        const mockToken = 'mock_jwt_token_' + Date.now();
+        setIsSubmitting(true);
 
-        login(mockDoctor, mockToken);
-        router.push('/doctor/profile');
+        try {
+            const result = await apiLogin(email, password);
+
+            if (result.isMock) {
+                setFallback('Login: mock mode');
+            }
+
+            // Map profile to Doctor shape for AuthProvider
+            const doc: Doctor = {
+                id: result.profile.id || 'doc_1',
+                fullName: `${result.profile.first_name} ${result.profile.last_name}`.trim() || email,
+                email: result.profile.email || email,
+                specialty: result.profile.role || '',
+            };
+
+            loginWithToken(doc, result.token);
+            router.push('/doctor/profile');
+        } catch (err) {
+            if (err instanceof ApiError) {
+                if (err.status === 401 || err.status === 403) {
+                    setError('Неверный логин или пароль');
+                } else {
+                    setError('Ошибка сервера/сети');
+                    setFallback(`Login error: ${err.message}`);
+                }
+            } else {
+                setError('Ошибка сервера/сети');
+                setFallback('Login: unexpected error');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -62,6 +90,7 @@ export default function LoginPage() {
                         onChange={(e) => setEmail(e.target.value)}
                         className="w-full p-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-primary)] transition-colors text-[var(--color-fg)]"
                         required
+                        disabled={isSubmitting}
                     />
                 </div>
 
@@ -75,14 +104,16 @@ export default function LoginPage() {
                         onChange={(e) => setPassword(e.target.value)}
                         className="w-full p-2 rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-bg)] focus:outline-none focus:border-[var(--color-primary)] transition-colors text-[var(--color-fg)]"
                         required
+                        disabled={isSubmitting}
                     />
                 </div>
 
                 <button
                     type="submit"
-                    className="w-full mt-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[#070A06] font-medium py-2 px-4 rounded-[var(--radius-md)] transition-colors focus-ring"
+                    disabled={isSubmitting}
+                    className="w-full mt-2 bg-[var(--color-primary)] hover:bg-[var(--color-primary-hover)] text-[#070A06] font-medium py-2 px-4 rounded-[var(--radius-md)] transition-colors focus-ring disabled:opacity-50"
                 >
-                    {t.loginButton}
+                    {isSubmitting ? '...' : t.loginButton}
                 </button>
             </form>
 

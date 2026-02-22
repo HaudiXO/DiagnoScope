@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import type { Patient } from '../lib/patients';
+import type { Patient } from '../lib/models/schemas';
 import type { HistoryEntry } from '../lib/history';
 import Card from './ui/Card';
 import Badge from './ui/Badge';

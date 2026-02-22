@@ -5,8 +5,10 @@ import Section from '../../components/Section';
 import DiagnosisCard from '../../components/DiagnosisCard';
 import SafetyBanner from '../../components/SafetyBanner';
 import PrintReport from '../../components/PrintReport';
-import { getHistoryEntry, type HistoryEntry } from '../../lib/history';
+import { type HistoryEntry } from '../../lib/history';
 import { useI18n } from '../../../lib/i18n';
+import { historyRepository } from '../../lib/repositories';
+import { useFallback } from '../../lib/FallbackContext';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -17,16 +19,23 @@ type DetailLevel = 'short' | 'detailed';
 
 export default function ResultDetailPage({ params }: Props) {
     const { t } = useI18n();
+    const { setFallback, setLive } = useFallback();
     const { id } = use(params);
     const [entry, setEntry] = useState<HistoryEntry | null | undefined>(undefined); // undefined = loading
     const [detailLevel, setDetailLevel] = useState<DetailLevel>('short');
     const [debugOpen, setDebugOpen] = useState(false);
 
     useEffect(() => {
-        if (!id) { setEntry(null); return; }
-        const found = getHistoryEntry(id);
-        setEntry(found ?? null);
-    }, [id]);
+        if (!id) return;
+        historyRepository.getHistoryEntry(id).then((result) => {
+            setEntry(result.data ?? null);
+            if (result.source === 'mock') {
+                setFallback(result.reason ?? 'Result: backend unavailable');
+            } else {
+                setLive();
+            }
+        }).catch(() => setEntry(null));
+    }, [id, setFallback, setLive]);
 
     // ── Loading state ──────────────────────────────────────────────────────
     if (entry === undefined) {
@@ -93,7 +102,7 @@ export default function ResultDetailPage({ params }: Props) {
                     symptoms={symptoms}
                     createdAt={createdAt}
                     traceId={traceId}
-                    mode={mode as any}
+                    mode={mode}
                     diagnoses={parsedDiagnoses}
                 />
             )}

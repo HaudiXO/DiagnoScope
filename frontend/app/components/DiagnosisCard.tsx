@@ -95,7 +95,7 @@ export default function DiagnosisCard({ item }: Props) {
                         {reasoning && (
                             <div className="rounded bg-[var(--color-elevated)] p-3 border border-[var(--color-border)]">
                                 <p className="text-xs text-[var(--color-muted)] italic">
-                                    "{reasoning}"
+                                    &quot;{reasoning}&quot;
                                 </p>
                             </div>
                         )}

@@ -5,28 +5,14 @@ import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import ChatMessage, { type ChatMsg } from '../../components/ChatMessage';
 import VoiceInputButton from '../../components/VoiceInputButton';
-import { diagnose, ApiError, type DiagnoseResponseWithMode } from '../../lib/api';
-import { addHistoryEntry } from '../../lib/history';
-import { addPatientRun, readPatients, type Patient } from '../../lib/patients';
-import { getPatientRuns, type HistoryEntry } from '../../lib/patientRuns';
+import type { DiagnoseResponseWithMode } from '../../lib/api';
+import { type HistoryEntry } from '../../lib/patientRuns';
 import Skeleton from '../../components/ui/Skeleton';
+import { chatRepository, patientRepository } from '../../lib/repositories';
+import type { Patient } from '../../lib/models/schemas';
+import { useFallback } from '../../lib/FallbackContext';
 
 const IS_DEV = process.env.NODE_ENV === 'development';
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function formatDate(iso: string): string {
-    try {
-        return new Date(iso).toLocaleDateString([], {
-            month: 'short',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit',
-        });
-    } catch {
-        return '';
-    }
-}
 
 /** Build ChatMsg pairs from a HistoryEntry (newest-first → reversed for rendering). */
 function entryToMsgs(entry: HistoryEntry): [ChatMsg, ChatMsg] {
@@ -51,31 +37,50 @@ function entryToMsgs(entry: HistoryEntry): [ChatMsg, ChatMsg] {
 // ── Component ──────────────────────────────────────────────────────────────
 
 export default function PatientPage() {
+    const { setFallback, setLive } = useFallback();
     const params = useParams();
     const patientId = typeof params.id === 'string' ? params.id : '';
 
     const [patient, setPatient] = useState<Patient | null | undefined>(undefined);
     const [messages, setMessages] = useState<ChatMsg[]>([]);
-    const [runs, setRuns] = useState<HistoryEntry[]>([]);
     const [symptoms, setSymptoms] = useState('');
     const [loading, setLoading] = useState(false);
     const [rawResponse, setRawResponse] = useState<DiagnoseResponseWithMode | null>(null);
     const [debugOpen, setDebugOpen] = useState(false);
-    const [lastMode, setLastMode] = useState<string | null>(null);
 
     const chatBottomRef = useRef<HTMLDivElement>(null);
 
     // ── Load patient + history on mount ──────────────────────────────────
     useEffect(() => {
-        const pts = readPatients();
-        setPatient(pts.find((p) => p.id === patientId) ?? null);
+        let active = true;
 
-        const pastRuns = getPatientRuns(patientId); // newest-first
-        setRuns(pastRuns);
-        // Build chat transcript: oldest first so the thread reads top-to-bottom.
-        const initialMsgs = [...pastRuns].reverse().flatMap(entryToMsgs);
-        setMessages(initialMsgs);
-    }, [patientId]);
+        async function loadData() {
+            const patientResult = await patientRepository.getPatient(patientId);
+            if (!active) return;
+            setPatient(patientResult.data);
+            if (patientResult.source === 'mock') {
+                setFallback(patientResult.reason ?? 'Patient: backend unavailable');
+            } else {
+                setLive();
+            }
+
+            const historyResult = await chatRepository.listPatientHistory(patientId);
+            if (!active) return;
+            const pastRuns = historyResult.data; // newest-first
+            if (historyResult.source === 'mock') {
+                setFallback(historyResult.reason ?? 'Chat history: backend unavailable');
+            } else {
+                setLive();
+            }
+            const initialMsgs = [...pastRuns].reverse().flatMap(entryToMsgs);
+            setMessages(initialMsgs);
+        }
+
+        loadData().catch(() => setPatient(null));
+        return () => {
+            active = false;
+        };
+    }, [patientId, setFallback, setLive]);
 
     // Scroll to bottom whenever a new message is appended.
     useEffect(() => {
@@ -98,65 +103,39 @@ export default function PatientPage() {
         setMessages((prev) => [...prev, doctorMsg]);
         setSymptoms('');
 
-        const start = Date.now();
         try {
-            const response = await diagnose({ symptoms: trimmed });
-            const latencyMs = Date.now() - start;
-            const topResults = (response.diagnoses ?? []).slice(0, 3);
+            const result = await chatRepository.sendMessage({ patientId, symptoms: trimmed });
+            const { entry, response } = result.data;
 
-            if (IS_DEV) setRawResponse(response);
-            setLastMode(response.mode ?? 'live');
-            window.dispatchEvent(new CustomEvent('medassist-mode', { detail: response.mode ?? 'live' }));
+            if (result.source === 'mock') {
+                setFallback(result.reason ?? 'Chat send: backend unavailable');
+            } else {
+                setLive();
+            }
 
-            const entry = addHistoryEntry({
-                symptoms: trimmed,
-                rawResponse: response,
-                parsedDiagnoses: topResults,
-                latencyMs,
-                traceId: response.trace_id,
-                mode: response.mode ?? 'live',
-                error: undefined,
-            });
-            addPatientRun(patientId, entry.id);
+            if (IS_DEV && response) setRawResponse(response);
+            window.dispatchEvent(new CustomEvent('medassist-mode', { detail: response?.mode ?? 'live' }));
 
             const assistantMsg: ChatMsg = {
                 role: 'assistant',
-                diagnoses: topResults,
-                mode: response.mode ?? 'live',
-                traceId: response.trace_id,
-                latencyMs,
+                diagnoses: entry.parsedDiagnoses,
+                mode: entry.mode,
+                traceId: entry.traceId,
+                latencyMs: entry.latencyMs,
+                error: entry.error,
                 timestamp: entry.createdAt,
                 entryId: entry.id,
             };
             setMessages((prev) => [...prev, assistantMsg]);
-            setRuns((prev) => [entry, ...prev]);
-        } catch (err) {
-            const latencyMs = Date.now() - start;
-            let msg = 'Произошла непредвиденная ошибка.';
-            if (err instanceof ApiError) msg = err.message;
-
-            const entry = addHistoryEntry({
-                symptoms: trimmed,
-                rawResponse: null,
-                parsedDiagnoses: [],
-                latencyMs,
-                traceId: undefined,
-                mode: null,
-                error: msg,
-            });
-            addPatientRun(patientId, entry.id);
-
+        } catch {
             const assistantMsg: ChatMsg = {
                 role: 'assistant',
                 diagnoses: [],
                 mode: null,
-                latencyMs,
-                error: msg,
-                timestamp: entry.createdAt,
-                entryId: entry.id,
+                error: 'Произошла непредвиденная ошибка.',
+                timestamp: new Date().toISOString(),
             };
             setMessages((prev) => [...prev, assistantMsg]);
-            setRuns((prev) => [entry, ...prev]);
         } finally {
             setLoading(false);
         }
@@ -164,11 +143,6 @@ export default function PatientPage() {
 
     function handleVoiceTranscript(text: string) {
         setSymptoms((prev) => (prev ? `${prev} ${text}` : text));
-    }
-
-    function scrollToRun(entryId: string) {
-        const el = document.getElementById(entryId);
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // ── Loading ───────────────────────────────────────────────────────────

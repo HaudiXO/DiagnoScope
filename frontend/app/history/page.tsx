@@ -4,18 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Section from '../components/Section';
 import ComparePanel from '../components/ComparePanel';
-import {
-    readHistory,
-    clearHistory,
-    type HistoryEntry,
-} from '../lib/history';
+import { type HistoryEntry } from '../lib/history';
 import { useI18n } from '../../lib/i18n';
+import type { Dictionary } from '../../lib/i18n';
+import Button from '../components/ui/Button';
+import Skeleton from '../components/ui/Skeleton';
+import { historyRepository } from '../lib/repositories';
+import { useFallback } from '../lib/FallbackContext';
 
 function formatDate(iso: string) {
     return new Date(iso).toLocaleString();
 }
 
-function modeBadge(mode: HistoryEntry['mode'], t: any) {
+function modeBadge(mode: HistoryEntry['mode'], t: Dictionary) {
     if (!mode || mode === 'live') return null;
     const cls =
         mode === 'demo'
@@ -35,30 +36,52 @@ function modeBadge(mode: HistoryEntry['mode'], t: any) {
 
 export default function HistoryPage() {
     const { t } = useI18n();
+    const { setFallback, setLive } = useFallback();
     const router = useRouter();
     const [entries, setEntries] = useState<HistoryEntry[]>([]);
     const [corruptWarning, setCorruptWarning] = useState(false);
     const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [isLoading, setIsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
+    const [offset, setOffset] = useState(0);
+    const limit = 20;
+    const [total, setTotal] = useState(0);
 
     // IDs of the two entries selected for compare
     const [compareIds, setCompareIds] = useState<[string, string] | null>(null);
 
-    function load() {
-        const { entries: e, corruptWarning: w } = readHistory();
-        setEntries(e);
-        setCorruptWarning(w);
-        setSelected(new Set());
-        setCompareIds(null);
+    async function load(nextOffset = offset) {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const result = await historyRepository.listHistory({ limit, offset: nextOffset });
+            setEntries(result.data.items);
+            setTotal(result.data.total);
+            setOffset(nextOffset);
+            if (result.source === 'mock') {
+                setFallback(result.reason ?? 'History: backend unavailable');
+            } else {
+                setLive();
+            }
+            setCorruptWarning(false);
+            setSelected(new Set());
+            setCompareIds(null);
+        } catch {
+            setError(t.errorWord);
+        } finally {
+            setIsLoading(false);
+        }
     }
 
     useEffect(() => {
-        load();
+        load(0);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    function handleClear() {
+    async function handleClear() {
         if (window.confirm(t.clearConfirm || 'Clear all history?')) {
-            clearHistory();
-            load();
+            await historyRepository.clearHistory();
+            await load(0);
         }
     }
 
@@ -148,7 +171,20 @@ export default function HistoryPage() {
             )}
 
             <Section title={t.recentAnalyses}>
-                {entries.length === 0 ? (
+                {isLoading ? (
+                    <div className="space-y-3">
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                        <Skeleton className="h-16 w-full" />
+                    </div>
+                ) : error ? (
+                    <div className="p-4 rounded-[var(--radius-lg)] border border-[color-mix(in_srgb,var(--color-danger)_30%,transparent)]">
+                        <p className="text-sm text-[var(--color-danger)]">{error}</p>
+                        <Button variant="secondary" className="mt-3" onClick={() => load(offset)}>
+                            Повторить
+                        </Button>
+                    </div>
+                ) : entries.length === 0 ? (
                     <div className="flex flex-col items-center justify-center p-12 border-2 border-dashed border-[var(--color-border)] rounded-[var(--radius-lg)] text-[var(--color-muted)] bg-transparent">
                         <p className="text-lg font-medium text-[var(--color-fg)]">
                             {t.noHistoryTitle}
@@ -221,6 +257,28 @@ export default function HistoryPage() {
                     </ul>
                 )}
             </Section>
+
+            {!isLoading && !error && total > limit && (
+                <div className="flex items-center justify-between">
+                    <Button
+                        variant="secondary"
+                        disabled={offset === 0}
+                        onClick={() => load(Math.max(0, offset - limit))}
+                    >
+                        ←
+                    </Button>
+                    <span className="text-xs text-[var(--color-muted)]">
+                        {offset + 1}–{Math.min(offset + limit, total)} / {total}
+                    </span>
+                    <Button
+                        variant="secondary"
+                        disabled={offset + limit >= total}
+                        onClick={() => load(offset + limit)}
+                    >
+                        →
+                    </Button>
+                </div>
+            )}
 
             {/* Compare panel */}
             {compareIds &&

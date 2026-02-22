@@ -4,6 +4,7 @@ export const en = {
     demoDisclaimerTitle: 'Demo Disclaimer:',
     demoDisclaimerText: 'This application is for demonstration purposes only. Not intended for actual medical use.',
     currentMode: 'Current mode:',
+    medicalDisclaimer: 'Not medical advice',
 
     patientsTitle: 'Patients',
     patientsOnFile: (count: number) => `${count} patient${count !== 1 ? 's' : ''} on file`,

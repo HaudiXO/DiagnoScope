@@ -1,22 +1,19 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import PatientCard from './components/PatientCard';
 import Button from './components/ui/Button';
 import Input from './components/ui/Input';
 import Card from './components/ui/Card';
 import { PlusIcon } from './components/ui/Icon';
 import Skeleton from './components/ui/Skeleton';
-import {
-  readPatients,
-  addPatient,
-  resetDemoData,
-  getLastPatientRun,
-  type Patient,
-} from './lib/patients';
 import { safeStorageGet, safeStorageSet } from './lib/safeStorage';
 import type { HistoryEntry } from './lib/history';
 import { useI18n } from '../lib/i18n';
+import { USE_MOCK } from './lib/demoMode';
+import { useFallback } from './lib/FallbackContext';
+import { chatRepository, patientRepository } from './lib/repositories';
+import type { Patient } from './lib/models/schemas';
 
 type SortKey = 'updated' | 'name' | 'warnings';
 
@@ -33,56 +30,98 @@ function getBannerWarnings(run: HistoryEntry | undefined): number {
 
 export default function PatientsPage() {
   const { t } = useI18n();
+  const { setFallback, setLive } = useFallback();
   const [patients, setPatients] = useState<Patient[]>([]);
   const [lastRuns, setLastRuns] = useState<Record<string, HistoryEntry | undefined>>({});
   const [showForm, setShowForm] = useState(false);
   const [name, setName] = useState('');
   const [age, setAge] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   // Search + sort
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState<SortKey>('updated');
 
   const [mounted, setMounted] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Getting-started banner
-  const [bannerDismissed, setBannerDismissed] = useState(true); // start hidden; read from LS on mount
+  const [bannerDismissed, setBannerDismissed] = useState(true);
 
-  function load() {
-    const pts = readPatients();
-    setPatients(pts);
-    const runs: Record<string, HistoryEntry | undefined> = {};
-    for (const p of pts) runs[p.id] = getLastPatientRun(p.id);
-    setLastRuns(runs);
-  }
+  const load = useCallback(async () => {
+    setIsLoading(true);
+    setLoadError(null);
+
+    try {
+      const result = await patientRepository.listPatients();
+      const pts = result.data.items;
+      setPatients(pts);
+
+      if (result.source === 'mock') {
+        setFallback(result.reason ?? 'Patients: backend unavailable');
+      } else {
+        setLive();
+      }
+
+      const runs: Record<string, HistoryEntry | undefined> = {};
+      await Promise.all(pts.map(async (p) => {
+        const history = await chatRepository.listPatientHistory(p.id);
+        runs[p.id] = history.data[0];
+        if (history.source === 'mock') {
+          setFallback(history.reason ?? 'Patient history: backend unavailable');
+        }
+      }));
+      setLastRuns(runs);
+    } catch {
+      setLoadError(t.loading + ' ' + t.errorWord);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [setFallback, setLive, t.errorWord, t.loading]);
 
   useEffect(() => {
     load();
-    // Read banner dismiss state from localStorage
     const dismissed = safeStorageGet<string>(BANNER_KEY, '0') === '1';
     setBannerDismissed(dismissed);
     setMounted(true);
-  }, []);
+  }, [load]);
 
   function dismissBanner() {
     setBannerDismissed(true);
     safeStorageSet(BANNER_KEY, '1');
   }
 
-  function handleAdd(e: React.FormEvent) {
+  async function handleAdd(e: React.FormEvent) {
     e.preventDefault();
     if (!name.trim()) return;
-    const parsedAge = age ? parseInt(age, 10) : undefined;
-    addPatient({ name, age: Number.isFinite(parsedAge) ? parsedAge : undefined });
-    setName('');
-    setAge('');
-    setShowForm(false);
-    load();
+
+    setIsLoading(true);
+    try {
+      const parsedAge = age ? parseInt(age, 10) : undefined;
+      const result = await patientRepository.createPatient({
+        name,
+        age: Number.isFinite(parsedAge) ? parsedAge : undefined,
+      });
+      if (result.source === 'mock') {
+        setFallback(result.reason ?? 'Patients: create fallback');
+      }
+      setName('');
+      setAge('');
+      setShowForm(false);
+      await load();
+    } catch {
+      setLoadError(t.errorWord);
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   function handleReset() {
-    resetDemoData();
-    load();
+    if (!USE_MOCK) {
+      alert('Reset is only available in Mock mode. Production DB must be managed by admin.');
+      return;
+    }
+    patientRepository.resetDemoData().then(() => load());
   }
 
   // ── Filter ────────────────────────────────────────────────────────────────
@@ -105,20 +144,17 @@ export default function PatientsPage() {
       if (sort === 'warnings') {
         return getBannerWarnings(lastRuns[b.id]) - getBannerWarnings(lastRuns[a.id]);
       }
-      // default: last updated (most recent run first; fall back to createdAt)
       const aTime = lastRuns[a.id]?.createdAt ?? a.createdAt;
       const bTime = lastRuns[b.id]?.createdAt ?? b.createdAt;
       return new Date(bTime).getTime() - new Date(aTime).getTime();
     });
   }, [filtered, sort, lastRuns]);
 
-  // ── Getting-started banner logic ──────────────────────────────────────────
   const hasAnyRun = Object.values(lastRuns).some(Boolean);
   const showBanner = !bannerDismissed && !hasAnyRun && patients.length > 0;
 
   return (
     <div className="space-y-6">
-      {/* Getting-started banner */}
       {showBanner && (
         <div
           className="relative rounded-[var(--radius-lg)] border p-5"
@@ -154,7 +190,6 @@ export default function PatientsPage() {
         </div>
       )}
 
-      {/* Page header */}
       <header className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-3xl font-bold tracking-tight text-[var(--color-fg)]">{t.patientsTitle}</h1>
@@ -166,6 +201,7 @@ export default function PatientsPage() {
           <Button
             variant="secondary"
             onClick={() => setShowForm((v) => !v)}
+            disabled={isLoading}
           >
             {showForm ? (
               t.cancel
@@ -176,13 +212,14 @@ export default function PatientsPage() {
               </>
             )}
           </Button>
-          <Button variant="danger" onClick={handleReset}>
-            {t.resetDemoData}
-          </Button>
+          {USE_MOCK && (
+            <Button variant="danger" onClick={handleReset} disabled={isLoading}>
+              {t.resetDemoData}
+            </Button>
+          )}
         </div>
       </header>
 
-      {/* Inline add-patient form */}
       {showForm && (
         <Card>
           <form onSubmit={handleAdd} className="flex gap-3 flex-wrap">
@@ -193,25 +230,28 @@ export default function PatientsPage() {
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="flex-1 min-w-[160px]"
+              disabled={isLoading}
             />
-            <Input
-              type="number"
-              aria-label={t.ageOptional}
-              placeholder={t.ageOptional}
-              min={0}
-              max={130}
-              value={age}
-              onChange={(e) => setAge(e.target.value)}
-              className="w-32"
-            />
-            <Button type="submit" variant="primary">
-              {t.add}
+            {USE_MOCK && (
+              <Input
+                type="number"
+                aria-label={t.ageOptional}
+                placeholder={t.ageOptional}
+                min={0}
+                max={130}
+                value={age}
+                onChange={(e) => setAge(e.target.value)}
+                className="w-32"
+                disabled={isLoading}
+              />
+            )}
+            <Button type="submit" variant="primary" disabled={isLoading}>
+              {isLoading ? '...' : t.add}
             </Button>
           </form>
         </Card>
       )}
 
-      {/* Search + sort toolbar — only when there are patients */}
       {patients.length > 0 && (
         <div className="flex gap-3 flex-wrap items-center">
           <Input
@@ -238,18 +278,24 @@ export default function PatientsPage() {
         </div>
       )}
 
-      {/* Patient grid */}
-      {!mounted ? (
+      {!mounted || isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-40 w-full" />
           <Skeleton className="h-40 w-full" />
         </div>
+      ) : loadError ? (
+        <Card>
+          <p className="text-sm text-[var(--color-danger)]">{t.errorWord}</p>
+          <Button className="mt-3" variant="secondary" onClick={load}>
+            {t.rerun}
+          </Button>
+        </Card>
       ) : patients.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center p-12 rounded-[var(--radius-lg)] border-2 border-dashed border-[var(--color-border)] text-[var(--color-muted)]"
         >
-          <p className="text-lg font-medium text-[var(--color-fg)]">{t.noPatientsTitle}</p>
+          <p className="text-lg font-medium text-[var(--color-fg)]">Нет пациентов</p>
           <p className="text-sm mt-1">{t.noPatientsDesc}</p>
         </div>
       ) : sorted.length === 0 ? (
