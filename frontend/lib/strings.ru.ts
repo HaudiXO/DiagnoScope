@@ -25,7 +25,7 @@ export const ru = {
     sortNameAZ: 'Имя А→Я',
     sortMostWarnings: 'Больше всего предупреждений',
     noPatientsTitle: 'Пока нет пациентов.',
-    noPatientsDesc: 'Добавьте пациента или нажмите «Сбросить демо-данные» для загрузки примеров.',
+    noPatientsDesc: 'Добавьте пациента, чтобы начать работу.',
     noResultsTitle: (query: string) => `Нет результатов для «${query}»`,
     noResultsDesc: 'Попробуйте другое имя или ключевое слово симптома.',
     gettingStartedTitle: '👋 С чего начать',

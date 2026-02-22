@@ -4,99 +4,14 @@ import {
     DiagnoseResponse,
     DiagnosisItem,
 } from './contract';
-import { USE_MOCK, FixtureMode } from './demoMode';
-import rawFixtures from './fixtures/diagnose_fixtures.json';
+import { REQUEST_TIMEOUT_MS, API_BASE_URL } from './config';
+import { getToken } from './authStorage';
 
-// ── Config ─────────────────────────────────────────────────────────────────
-
-const BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') ?? '';
-
-const TIMEOUT_MS = 4_000;
-
-// ── Extended response type (mode is appended post-parse; not in Zod schema) ─
+export type DiagnoseMode = 'live';
 
 export type DiagnoseResponseWithMode = DiagnoseResponse & {
-    mode?: FixtureMode;
+    mode?: DiagnoseMode;
 };
-
-// ── Fixture types ──────────────────────────────────────────────────────────
-
-interface FixtureEntry {
-    _comment?: string;
-    keywords: string[];
-    request: unknown;
-    response: unknown;
-}
-
-// ── Fixture validation (dev only, runs once on first use) ──────────────────
-
-let fixturesValidated = false;
-
-function validateFixtures(): void {
-    if (fixturesValidated || process.env.NODE_ENV !== 'development') return;
-    fixturesValidated = true;
-
-    (rawFixtures as FixtureEntry[]).forEach((entry, i) => {
-        const result = DiagnoseResponse.safeParse(entry.response);
-        if (!result.success) {
-            console.error(
-                `[demoMode] Fixture #${i} ("${entry._comment ?? ''}") failed CONTRACT validation:`,
-                result.error.flatten()
-            );
-        }
-    });
-}
-
-// ── Fixture selector ───────────────────────────────────────────────────────
-
-/**
- * Picks a fixture deterministically from symptoms text.
- * Strategy: first fixture whose `keywords` array contains a substring
- * match against the lower-cased symptoms. Falls back to fixture #0.
- * Guarantees a non-empty diagnoses array.
- */
-function getFallbackFixture(symptoms: string): DiagnoseResponseWithMode {
-    validateFixtures();
-
-    const lower = symptoms.toLowerCase();
-    const fixtures = rawFixtures as FixtureEntry[];
-
-    const match =
-        fixtures.find((f) =>
-            f.keywords.some((kw) => lower.includes(kw))
-        ) ?? fixtures[0];
-
-    // Parse and validate – if it somehow fails, bubble up to caller.
-    const parsed = parseDiagnoseResponse(match.response);
-
-    // Safety guarantee: fallback must never return empty diagnoses.
-    if (parsed.diagnoses.length === 0) {
-        if (process.env.NODE_ENV === 'development') {
-            console.error(
-                '[demoMode] Selected fixture produced empty diagnoses array. ' +
-                'Ensure fixtures always contain at least one valid DiagnosisItem.'
-            );
-        }
-        // Hard-coded emergency item so the UI is never broken.
-        return {
-            ...parsed,
-            diagnoses: [
-                {
-                    rank: 1,
-                    icd10_code: 'Z03.89',
-                    description: 'Наблюдение при подозрении на другие заболевания',
-                    confidence: 0,
-                    reasoning: 'Нет доступных данных.',
-                },
-            ],
-        };
-    }
-
-    return parsed;
-}
-
-// ── Error type ─────────────────────────────────────────────────────────────
 
 export class ApiError extends Error {
     constructor(
@@ -110,14 +25,6 @@ export class ApiError extends Error {
     }
 }
 
-// ── Error normaliser ───────────────────────────────────────────────────────
-
-/**
- * Attempts to parse a non-2xx response body as the CONTRACT error envelope
- * { error_code, message, details?, trace_id? }.
- * Falls back to a generic message if the body is not valid JSON or doesn't
- * match the envelope shape (e.g. HTML error pages, empty body).
- */
 export async function normalizeApiError(
     res: Response
 ): Promise<ApiError> {
@@ -148,18 +55,16 @@ export async function normalizeApiError(
     );
 }
 
-// ── Fetch wrapper ──────────────────────────────────────────────────────────
+function authHeaders(): Record<string, string> {
+    const token = getToken();
+    if (token) {
+        return { Authorization: `${token.tokenType || 'Bearer'} ${token.accessToken}` };
+    }
+    return {};
+}
 
-/**
- * POST /diagnose and return a validated, sorted DiagnoseResponseWithMode.
- *
- * Behaviour:
- *  - USE_MOCK=true  → return fixture immediately (mode="demo")
- *  - else           → call backend with 12 s AbortController timeout
- *    • timeout / network error / !res.ok / schema error → fixture (mode="fallback")
- * Never throws once a fixture is available.
- */
-export async function diagnose(
+export async function diagnoseForPatient(
+    patientId: string,
     req: DiagnoseRequest
 ): Promise<DiagnoseResponseWithMode> {
     const parsed = DiagnoseRequest.safeParse(req);
@@ -169,65 +74,82 @@ export async function diagnose(
         );
     }
 
-    // ── Demo mode ────────────────────────────────────────────────────────
-    if (USE_MOCK) {
-        const fixture = getFallbackFixture(parsed.data.symptoms);
-        return { ...fixture, mode: 'demo' };
-    }
-
-    // ── Live fetch with 12 s timeout ─────────────────────────────────────
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-    let res: Response;
+    const encodedId = encodeURIComponent(patientId);
+    const endpoints = [
+        `${API_BASE_URL}/doctor/patients/${encodedId}/chat`,
+        `${API_BASE_URL}/${encodedId}/chat`,
+    ];
+    const chatPayload = {
+        ...parsed.data,
+        message: parsed.data.symptoms,
+        text: parsed.data.symptoms,
+    };
+
+    let raw: unknown = null;
+    let hit = false;
+
     try {
-        res = await fetch(`${BASE_URL}/diagnose`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(parsed.data),
-            signal: controller.signal,
-        });
-    } catch {
-        // Timeout or network error → graceful fallback.
-        clearTimeout(timer);
-        const fixture = getFallbackFixture(parsed.data.symptoms);
-        return { ...fixture, mode: 'fallback' };
+        for (const endpoint of endpoints) {
+            const res = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...authHeaders(),
+                },
+                body: JSON.stringify(chatPayload),
+                signal: controller.signal,
+            });
+
+            if (res.status === 404) {
+                continue;
+            }
+
+            if (!res.ok) {
+                throw await normalizeApiError(res);
+            }
+
+            try {
+                raw = await res.json();
+            } catch {
+                throw new ApiError(
+                    'Неверный формат ответа: пустой или поврежденный JSON',
+                    res.status
+                );
+            }
+
+            hit = true;
+            break;
+        }
+    } catch (err) {
+        if (err instanceof ApiError) {
+            throw err;
+        }
+        throw new ApiError('Таймаут или ошибка сети');
     } finally {
         clearTimeout(timer);
     }
 
-    // ── Non-2xx → fallback ────────────────────────────────────────────────
-    if (!res.ok) {
-        const fixture = getFallbackFixture(parsed.data.symptoms);
-        return { ...fixture, mode: 'fallback' };
+    if (!hit) {
+        throw new ApiError(
+            'Не найден chat endpoint. Ожидался POST /doctor/patients/{patientId}/chat или /{patientId}/chat',
+            404
+        );
     }
 
-    // ── Parse response; invalid schema → fallback ─────────────────────────
-    let raw: unknown;
-    try {
-        raw = await res.json();
-    } catch {
-        const fixture = getFallbackFixture(parsed.data.symptoms);
-        return { ...fixture, mode: 'fallback' };
-    }
-
-    try {
-        return parseDiagnoseResponse(raw);
-    } catch {
-        const fixture = getFallbackFixture(parsed.data.symptoms);
-        return { ...fixture, mode: 'fallback' };
-    }
+    const response = parseDiagnoseResponse(raw);
+    return {
+        ...response,
+        mode: 'live',
+    };
 }
 
-// ── Response parser ────────────────────────────────────────────────────────
-
-/**
- * Accepts unknown input, filters invalid DiagnosisItems (missing rank or
- * icd10_code), and returns items sorted ascending by rank.
- * Never throws – invalid items are silently dropped.
- */
 export function parseDiagnoseResponse(raw: unknown): DiagnoseResponse {
-    const result = DiagnoseResponse.passthrough().safeParse(raw);
+    const payload = unwrapDiagnosePayload(raw);
+
+    const result = DiagnoseResponse.passthrough().safeParse(payload);
 
     if (!result.success) {
         throw new ApiError(
@@ -243,4 +165,22 @@ export function parseDiagnoseResponse(raw: unknown): DiagnoseResponse {
         ...result.data,
         diagnoses: validItems.sort((a, b) => a.rank - b.rank),
     };
+}
+
+function unwrapDiagnosePayload(raw: unknown): unknown {
+    if (!raw || typeof raw !== 'object') return raw;
+
+    const obj = raw as Record<string, unknown>;
+    if (Array.isArray(obj.diagnoses)) return obj;
+
+    const nestedKeys = ['data', 'result', 'response', 'payload'];
+    for (const key of nestedKeys) {
+        const candidate = obj[key];
+        if (!candidate || typeof candidate !== 'object') continue;
+        if (Array.isArray((candidate as Record<string, unknown>).diagnoses)) {
+            return candidate;
+        }
+    }
+
+    return raw;
 }

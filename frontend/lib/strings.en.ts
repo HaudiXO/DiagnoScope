@@ -18,7 +18,7 @@ export const en = {
     sortNameAZ: 'Name A→Z',
     sortMostWarnings: 'Most warnings',
     noPatientsTitle: 'No patients yet.',
-    noPatientsDesc: 'Add a patient or click "Reset demo data" to seed examples.',
+    noPatientsDesc: 'Add a patient to get started.',
     noResultsTitle: (query: string) => `No results for "${query}"`,
     noResultsDesc: 'Try a different name or symptom keyword.',
     gettingStartedTitle: '👋 Getting started',

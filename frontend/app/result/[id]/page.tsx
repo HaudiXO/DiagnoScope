@@ -5,8 +5,9 @@ import Section from '../../components/Section';
 import DiagnosisCard from '../../components/DiagnosisCard';
 import SafetyBanner from '../../components/SafetyBanner';
 import PrintReport from '../../components/PrintReport';
-import { getHistoryEntry, type HistoryEntry } from '../../lib/history';
+import { type HistoryEntry } from '../../lib/history';
 import { useI18n } from '../../../lib/i18n';
+import { historyRepository } from '../../lib/repositories';
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -23,9 +24,10 @@ export default function ResultDetailPage({ params }: Props) {
     const [debugOpen, setDebugOpen] = useState(false);
 
     useEffect(() => {
-        if (!id) { setEntry(null); return; }
-        const found = getHistoryEntry(id);
-        setEntry(found ?? null);
+        if (!id) return;
+        historyRepository.getHistoryEntry(id).then((result) => {
+            setEntry(result.data ?? null);
+        }).catch(() => setEntry(null));
     }, [id]);
 
     // ── Loading state ──────────────────────────────────────────────────────
@@ -93,7 +95,7 @@ export default function ResultDetailPage({ params }: Props) {
                     symptoms={symptoms}
                     createdAt={createdAt}
                     traceId={traceId}
-                    mode={mode as any}
+                    mode={mode}
                     diagnoses={parsedDiagnoses}
                 />
             )}
