@@ -87,6 +87,19 @@ down:
 logs:
     docker-compose logs -f
 
+# QAZ service (ML/NLP processing)
+qaz-up:
+    docker-compose -f docker-compose.prod.yml up -d qaz
+
+qaz-down:
+    docker-compose -f docker-compose.prod.yml stop qaz
+
+qaz-logs:
+    docker-compose -f docker-compose.prod.yml logs -f qaz
+
+qaz-build:
+    docker-compose -f docker-compose.prod.yml build qaz
+
 # Individual service groups (works with both compose files)
 airflow-up:
     docker-compose up -d airflow-webserver airflow-scheduler airflow-worker airflow-triggerer airflow-init
