@@ -1,5 +1,7 @@
 """Patient domain value objects."""
 
+from enum import Enum
+
 from src.domain.common.vo.string import NonEmptyString
 from src.domain.common.vo.uuid import UUIDValueObject
 
@@ -22,3 +24,10 @@ class LastName(NonEmptyString):
 
     min_length = 1
     max_length = 64
+
+
+class MessageRole(Enum):
+    """Message role (user or assistant)."""
+
+    USER = "user"
+    ASSISTANT = "assistant"

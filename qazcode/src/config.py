@@ -11,7 +11,7 @@ class Settings(BaseSettings):
     MODEL_NAME: str = "gpt-oss:120b-cloud"
     EMBEDDING_MODEL: str = "BAAI/bge-m3"
     EMBEDDING_DEVICE: str = "cuda"
-    DATA_PATH: str = str(_PROJECT_ROOT / "data" / "protocols_corpus.jsonl")
+    DATA_PATH: str = str(_PROJECT_ROOT / "data" / "corpus" / "protocols_corpus.jsonl")
     INDEX_PATH: str = str(_PROJECT_ROOT / "faiss_index")
     SEARCH_K: int = 6
     CONTEXT_MAX_CHARS: int = 18000

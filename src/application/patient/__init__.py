@@ -1,5 +1,16 @@
 """Patient application layer."""
 
+from src.application.patient.chat_dtos import (
+    ChatMessageDTO,
+    GetChatMessagesInputDTO,
+    GetChatMessagesOutputDTO,
+    SendMessageInputDTO,
+    SendMessageOutputDTO,
+)
+from src.application.patient.chat_interactors import (
+    GetChatMessagesInteractor,
+    SendMessageInteractor,
+)
 from src.application.patient.dtos import (
     CreatePatientInputDTO,
     CreatePatientOutputDTO,
@@ -22,11 +33,15 @@ from src.application.patient.interactors import (
 )
 
 __all__ = [
+    "ChatMessageDTO",
     "CreatePatientInputDTO",
     "CreatePatientInteractor",
     "CreatePatientOutputDTO",
     "DeletePatientInputDTO",
     "DeletePatientInteractor",
+    "GetChatMessagesInputDTO",
+    "GetChatMessagesInteractor",
+    "GetChatMessagesOutputDTO",
     "GetPatientInputDTO",
     "GetPatientInteractor",
     "GetPatientOutputDTO",
@@ -36,4 +51,7 @@ __all__ = [
     "PatientAccessDeniedError",
     "PatientListItemDTO",
     "PatientNotFoundError",
+    "SendMessageInputDTO",
+    "SendMessageInteractor",
+    "SendMessageOutputDTO",
 ]

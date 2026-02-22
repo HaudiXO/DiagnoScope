@@ -1,29 +1,35 @@
 import json
-from pathlib import Path
 import re
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
+
+import httpx
+from anyio import Path
+from fastapi import FastAPI, HTTPException
+from ollama import ResponseError as OllamaResponseError
+from pydantic import BaseModel
 
 from brain import MedicalBrain
 from config import settings
 from database import ProtocolDB
-from fastapi import FastAPI, HTTPException
-import httpx
-from ollama import ResponseError as OllamaResponseError
-from pydantic import BaseModel
-
-app = FastAPI(title="Medical Assistant API")
 
 db = ProtocolDB()
 brain = MedicalBrain()
 
 
-@app.on_event("startup")
-def startup_event():
-    if not settings.INDEX_PATH or not Path(settings.INDEX_PATH).exists():
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator:
+    if not settings.INDEX_PATH or not await Path(settings.INDEX_PATH).exists():
         print("Индекс не найден, собираем...")
         db.build_initial_index()
     else:
         print("Загружаем существующий индекс FAISS...")
         db.load_index()
+
+    yield
+
+
+app = FastAPI(title="Medical Assistant API", lifespan=lifespan)
 
 
 class Query(BaseModel):
@@ -42,7 +48,7 @@ def _icd_codes_from_doc(page_content: str) -> list[str]:
 
 
 @app.post("/diagnose")
-async def predict(data: Query):
+async def predict(data: Query) -> dict:
     k = getattr(settings, "SEARCH_K", 6)
     docs = db.search(data.symptoms, k=k)
     context_raw = "\n\n".join([doc.page_content for doc in docs])
@@ -75,7 +81,7 @@ async def predict(data: Query):
                 "message": "Ollama недоступен. Проверьте OLLAMA_API_KEY и OLLAMA_BASE_URL.",
                 "detail": err_msg,
             },
-        )
+        ) from e
 
     try:
         if isinstance(answer, str):
@@ -92,7 +98,7 @@ async def predict(data: Query):
 
     def one(
         rank: int, diagnosis: str = "", icd10_code: str = "", explanation: str = ""
-    ):
+    ) -> dict:
         return {
             "rank": rank,
             "diagnosis": diagnosis,
@@ -131,5 +137,5 @@ async def predict(data: Query):
 
 
 @app.get("/health")
-def health_check():
+def health_check() -> dict:
     return {"status": "ok"}

@@ -40,10 +40,6 @@ clean:
     docker-compose down -v
     docker-compose rm -f
 
-# View logs
-logs:
-    docker-compose logs -f
-
 # Status
 status:
     docker-compose ps
@@ -51,13 +47,13 @@ status:
 api:
     uv run granian src.presentation.api.app:create_app --factory --port 8080 --interface asgi --log --access-log --reload
 
-test:
-    docker compose -f docker-compose-test.yml up -d
-    uv run pytest -n auto -ss -vv --maxfail=1
-    docker compose -f docker-compose-test.yml down -v
+# test:
+#     docker compose -f docker-compose-test.yml up -d
+#     uv run pytest -n auto -ss -vv --maxfail=1
+#     docker compose -f docker-compose-test.yml down -v
 
-test-db-up:
-    docker compose -f docker-compose-test.yml up --build -d
+# test-db-up:
+#     docker compose -f docker-compose-test.yml up --build -d
 
 lint:
     uv run ruff format src  # tests
@@ -75,17 +71,6 @@ prod-logs:
 
 prod-build:
     docker-compose -f docker-compose.prod.yml build
-
-# Local development stack (no API - run API locally with 'just api')
-# Includes: Postgres, Airflow, ML infra, Monitoring
-up:
-    docker-compose up -d
-
-down:
-    docker-compose down
-
-logs:
-    docker-compose logs -f
 
 # QAZ service (ML/NLP processing)
 qaz-up:
@@ -123,13 +108,3 @@ monitoring-up:
 
 monitoring-down:
     docker-compose stop prometheus grafana statsd-exporter
-
-# Database only
-db-up:
-    docker-compose up -d postgres
-
-db-down:
-    docker-compose stop postgres
-
-db-logs:
-    docker-compose logs -f postgres

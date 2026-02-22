@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.infrastructure.db.repos import (
     AdminRepositoryImpl,
+    ChatMessageRepositoryImpl,
     PatientRepositoryImpl,
     UserRepositoryImpl,
 )
@@ -13,3 +14,4 @@ class HolderDao:
         self.user_repo = UserRepositoryImpl(session)
         self.admin_repo = AdminRepositoryImpl(session)
         self.patient_repo = PatientRepositoryImpl(session)
+        self.chat_message_repo = ChatMessageRepositoryImpl(session)

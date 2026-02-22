@@ -33,13 +33,14 @@ uv sync
 ```
 
 
-## 3. Ensure everything works
+<!-- Temproraily removing test commands until we have a stable test setup -->
+<!-- ## 3. Ensure everything works
 #### 3.1 Run tests
 ```shell
 docker compose -f docker-compose-test.yml up --build -d
 uv run pytest
 docker compose -f docker-compose-test.yml down -v
-```
+``` -->
 
 ## 4. Local Development
 

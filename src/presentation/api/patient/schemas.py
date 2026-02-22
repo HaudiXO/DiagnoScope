@@ -44,3 +44,49 @@ class PatientListResponseData:
 
 class PatientListResponseSchema(BaseResponseDTO[PatientListResponseData]):
     """Response schema for listing patients."""
+
+
+# Chat message schemas
+
+
+@dataclass
+class ChatMessageResponseData:
+    """Response data for a chat message."""
+
+    id: str
+    role: str
+    content: str
+    created_at: datetime
+
+
+@dataclass
+class ChatMessageListResponseData:
+    """Response data for listing chat messages."""
+
+    items: list[ChatMessageResponseData]
+    total: int
+    limit: int
+    offset: int
+
+
+class ChatMessageListResponseSchema(BaseResponseDTO[ChatMessageListResponseData]):
+    """Response schema for listing chat messages."""
+
+
+@dataclass
+class SendMessageRequest:
+    """Request schema for sending a message."""
+
+    content: str
+
+
+@dataclass
+class SendMessageResponseData:
+    """Response data for sending a message."""
+
+    user_message: ChatMessageResponseData
+    assistant_message: ChatMessageResponseData
+
+
+class SendMessageResponseSchema(BaseResponseDTO[SendMessageResponseData]):
+    """Response schema for sending a message."""
