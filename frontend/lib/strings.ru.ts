@@ -4,6 +4,7 @@ export const ru = {
     demoDisclaimerTitle: 'Демо-версия:',
     demoDisclaimerText: 'Это приложение предназначено только для демонстрации. Не для реального медицинского использования.',
     currentMode: 'Текущий режим:',
+    medicalDisclaimer: 'Не является медицинской рекомендацией',
 
     patientsTitle: 'Пациенты',
     patientsOnFile: (count: number) => {

@@ -9,7 +9,7 @@ import { login as apiLogin, ApiError } from '../../lib/services/authService';
 import type { Doctor } from '../../../lib/auth';
 
 export default function LoginPage() {
-    const { loginWithToken } = useAuth();
+    const { login } = useAuth();
     const { t } = useI18n();
     const router = useRouter();
 
@@ -44,7 +44,7 @@ export default function LoginPage() {
                 specialty: result.profile.role || '',
             };
 
-            loginWithToken(doc, result.token);
+            login(doc, result.token.accessToken);
             router.push('/doctor/profile');
         } catch (err) {
             if (err instanceof ApiError) {
