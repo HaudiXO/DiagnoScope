@@ -188,6 +188,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                             const safe: DiagnosisItem = {
                                 rank: typeof item.rank === 'number' ? item.rank : i + 1,
                                 icd10_code: safeCode(item),
+                                diagnosis: item.diagnosis ?? undefined,
                                 description: item.description ?? undefined,
                                 confidence: item.confidence ?? undefined,
                                 reasoning: item.reasoning ?? undefined,

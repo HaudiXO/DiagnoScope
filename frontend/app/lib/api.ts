@@ -10,9 +10,9 @@ import rawFixtures from './fixtures/diagnose_fixtures.json';
 // ── Config ─────────────────────────────────────────────────────────────────
 
 const BASE_URL =
-    process.env.NEXT_PUBLIC_API_BASE?.replace(/\/$/, '') ?? '';
+    process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, '') ?? '';
 
-const TIMEOUT_MS = 12_000;
+const TIMEOUT_MS = 4_000;
 
 // ── Extended response type (mode is appended post-parse; not in Zod schema) ─
 

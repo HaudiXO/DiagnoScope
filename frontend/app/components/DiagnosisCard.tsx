@@ -10,6 +10,7 @@ export default function DiagnosisCard({ item }: Props) {
     const {
         rank = 0,
         icd10_code = 'Unknown',
+        diagnosis = '',
         description = '',
         confidence,
         reasoning = '',
@@ -39,7 +40,7 @@ export default function DiagnosisCard({ item }: Props) {
                         {icd10_code}
                     </Badge>
                     <span className="font-semibold text-[var(--color-fg)]">
-                        {description || <em className="opacity-50">Неизвестный диагноз</em>}
+                        {diagnosis || description || <em className="opacity-50">Неизвестный диагноз</em>}
                     </span>
                     {confidence !== undefined && (
                         <span className="text-xs px-2 py-0.5 rounded-full bg-[var(--color-primary-soft)] text-[var(--color-primary)] font-medium whitespace-nowrap">

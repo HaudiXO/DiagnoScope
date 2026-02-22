@@ -33,6 +33,7 @@ Thumbs.db
 *.log
 *.tmp
 *.swp
+<<<<<<< HEAD
 
 config.yaml
 todos.txt
@@ -45,3 +46,7 @@ coverage.xml
 
 # Git worktrees
 .worktrees/
+=======
+frontend/tsconfig.tsbuildinfo
+frontend/tsconfig.tsbuildinfo
+>>>>>>> fb64307 (feat(frontend): finalize UI and API integration)

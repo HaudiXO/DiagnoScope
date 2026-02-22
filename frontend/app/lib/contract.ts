@@ -16,6 +16,7 @@ export type DiagnoseRequest = z.infer<typeof DiagnoseRequest>;
 
 export const DiagnosisItem = z.object({
     rank: z.number().int(),
+    diagnosis: z.string().optional(),
     icd10_code: z.string(),
     // present in initial spec
     description: z.string().optional(),
