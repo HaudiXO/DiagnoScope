@@ -1,10 +1,10 @@
-from datetime import datetime, timedelta
 import json
 import logging
+from datetime import datetime, timedelta
 
+import requests
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-import requests
 
 default_args = {
     "owner": "airflow",

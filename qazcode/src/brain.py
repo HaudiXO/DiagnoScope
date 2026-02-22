@@ -1,7 +1,8 @@
 import os
 
-from config import settings
 from ollama import Client
+
+from config import settings
 
 
 class MedicalBrain:

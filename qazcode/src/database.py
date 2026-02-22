@@ -1,9 +1,10 @@
 import json
 from pathlib import Path
 
-from config import settings
 from langchain_community.vectorstores import FAISS
 from langchain_huggingface import HuggingFaceEmbeddings
+
+from config import settings
 
 
 def _get_embeddings():
