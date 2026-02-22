@@ -1,6 +1,7 @@
 from dishka import make_async_container
 from dishka.integrations.litestar import setup_dishka
 from litestar import Litestar
+from litestar.config.cors import CORSConfig
 from litestar.di import Provide
 from litestar.exceptions import ClientException
 from litestar.middleware import DefineMiddleware
@@ -69,6 +70,11 @@ def prepare_app(auth_service: AuthService) -> Litestar:
             "user_id": Provide(provide_user_id, sync_to_thread=False)
         },
         openapi_config=openapi_config,
+        cors_config=CORSConfig(
+            allow_origins=["*"],
+            allow_methods=["*"],
+            allow_headers=["*"],
+        ),
     )
     return app
 
