@@ -36,9 +36,11 @@ export default function DiagnosisCard({ item }: Props) {
             <div className="flex-1 min-w-0 space-y-2">
                 {/* Code + confidence + toggle */}
                 <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="blue" className="text-sm px-2 py-0.5">
-                        {icd10_code}
-                    </Badge>
+                    {icd10_code && icd10_code !== 'Unknown' && (
+                        <Badge variant="blue" className="text-sm px-2 py-0.5">
+                            {icd10_code}
+                        </Badge>
+                    )}
                     <span className="font-semibold text-[var(--color-fg)]">
                         {diagnosis || description || <em className="opacity-50">Неизвестный диагноз</em>}
                     </span>

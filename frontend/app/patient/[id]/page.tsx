@@ -23,6 +23,7 @@ function entryToMsgs(entry: HistoryEntry): [ChatMsg, ChatMsg] {
     const assistant: ChatMsg = {
         role: 'assistant',
         diagnoses: Array.isArray(entry.parsedDiagnoses) ? entry.parsedDiagnoses : [],
+        rawContent: entry.rawContent,
         mode: entry.mode ?? null,
         traceId: entry.traceId,
         latencyMs: entry.latencyMs,
@@ -60,7 +61,9 @@ export default function PatientPage() {
             const historyResult = await chatRepository.listPatientHistory(patientId);
             if (!active) return;
             const pastRuns = historyResult.data; // newest-first
+            console.log('[PatientPage] Loaded history entries:', pastRuns);
             const initialMsgs = [...pastRuns].reverse().flatMap(entryToMsgs);
+            console.log('[PatientPage] Mapped messages:', initialMsgs);
             setMessages(initialMsgs);
         }
 

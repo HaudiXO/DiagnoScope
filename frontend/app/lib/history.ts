@@ -12,12 +12,18 @@ import type { FixtureMode } from './demoMode';
 
 export const HISTORY_KEY = 'dx_history_v1';
 
+/**
+ * HistoryEntry represents a paired doctor+assistant interaction.
+ * Derived from backend ChatMessageResponseData items (src/presentation/api/patient/schemas.py)
+ * via mapChatItemsToHistory in chatRepository.ts.
+ */
 export interface HistoryEntry {
     id: string;
     createdAt: string;       // ISO-8601
-    symptoms: string;
-    rawResponse: DiagnoseResponseWithMode | null;
+    symptoms: string;        // Content from doctor role message
+    rawResponse: DiagnoseResponseWithMode | null;  // Parsed from assistant content JSON
     parsedDiagnoses: DiagnosisItem[];
+    rawContent?: string;     // Original raw text from assistant (when not JSON)
     latencyMs: number;
     traceId: string | undefined;
     mode: FixtureMode | 'live' | null;

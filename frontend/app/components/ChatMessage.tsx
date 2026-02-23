@@ -18,6 +18,7 @@ export interface DoctorMessage {
 export interface AssistantMessage {
     role: 'assistant';
     diagnoses: DiagnosisItem[];
+    rawContent?: string;     // Original raw text from assistant (when not JSON)
     mode: FixtureMode | 'live' | null;
     traceId?: string;
     latencyMs?: number;
@@ -172,14 +173,21 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                     </Alert>
                 )}
 
+                {/* Raw content (when not JSON/parsed) */}
+                {!msg.error && msg.rawContent && (
+                    <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-elevated)] px-4 py-3 text-sm text-[var(--color-fg)] whitespace-pre-wrap">
+                        {msg.rawContent}
+                    </div>
+                )}
+
                 {/* Empty diagnoses (non-error) */}
-                {!msg.error && safeDiagnoses.length === 0 && (
+                {!msg.error && safeDiagnoses.length === 0 && !msg.rawContent && (
                     <div className="rounded-[var(--radius-md)] border border-[var(--color-border)] bg-[var(--color-elevated)] px-4 py-3 text-sm text-[var(--color-muted)]">
                         Диагнозы не найдены.
                     </div>
                 )}
 
-                {/* Diagnosis cards */}
+                {/* Diagnosis cards
                 {safeDiagnoses.length > 0 && (
                     <div className="space-y-2">
                         <SafetyBanner diagnoses={safeDiagnoses} traceId={msg.traceId} />
@@ -205,7 +213,7 @@ function AssistantBubble({ msg }: { msg: AssistantMessage }) {
                         })}
                         <CopyIcdButton diagnoses={safeDiagnoses} />
                     </div>
-                )}
+                )} */}
 
                 <p className="text-xs text-[var(--color-muted)]">
                     {formatTime(msg.timestamp)}
